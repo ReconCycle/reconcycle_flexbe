@@ -22,6 +22,8 @@
 
 		<param type="text" name="tray_service_name" default="/clamping_tray" label="tray_service_name" hint="Sets the tray_service_name" />
 
+		<param type="text" name="panda_2_name" default="panda_2" label="panda_2_name" hint="Sets the panda_2_name" />
+
 	</params>
 
 

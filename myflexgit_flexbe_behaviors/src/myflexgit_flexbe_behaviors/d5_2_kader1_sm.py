@@ -39,6 +39,7 @@ class D5_2_kader1SM(Behavior):
 
 		# parameters of this behavior
 		self.add_parameter('tray_service_name', '/clamping_tray')
+		self.add_parameter('panda_2_name', 'panda_2')
 
 		# references to used behaviors
 		self.add_behavior(BreakingobjectSM, 'Cell runing/Breaking object')
@@ -73,6 +74,7 @@ class D5_2_kader1SM(Behavior):
 		_state_machine.userdata.panda2_clamp_break_trj = 'breaking_object_n1'
 		_state_machine.userdata.panda2_clamp_retreat_trj = 'trj_umik_2'
 		_state_machine.userdata.before_pick_pcb = 'panda_2_beffore_tray'
+		_state_machine.userdata.panda_2_init = 'panda_2_beffore_tray'
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
@@ -247,7 +249,7 @@ class D5_2_kader1SM(Behavior):
 
 
 		# x:1175 y:68, x:27 y:668
-		_sm_cell_init_6 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['TR', 'panda1_init_position', 'open_hand', 'FA'])
+		_sm_cell_init_6 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['TR', 'panda1_init_position', 'open_hand', 'FA', 'panda_2_init'])
 
 		with _sm_cell_init_6:
 			# x:40 y:46
@@ -260,9 +262,16 @@ class D5_2_kader1SM(Behavior):
 			# x:594 y:56
 			OperatableStateMachine.add('Move Panda 1 to initial',
 										CallJointTrap(max_vel=0.3, max_acl=0.3, namespace='/panda_1'),
-										transitions={'continue': 'Open hand', 'failed': 'failed'},
+										transitions={'continue': 'Read initial state_2', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Off},
 										remapping={'joints_data': 'init_position', 'joint_values': 'joint_values'})
+
+			# x:785 y:293
+			OperatableStateMachine.add('Move Panda 2 to initial_2',
+										CallJointTrap(max_vel=0.3, max_acl=0.3, namespace='/panda_2'),
+										transitions={'continue': 'Open hand', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Off},
+										remapping={'joints_data': 'init_position2', 'joint_values': 'joint_values'})
 
 			# x:217 y:24
 			OperatableStateMachine.add('Open clamp',
@@ -285,17 +294,24 @@ class D5_2_kader1SM(Behavior):
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'entry_name': 'panda1_init_position', 'joints_data': 'init_position'})
 
+			# x:575 y:294
+			OperatableStateMachine.add('Read initial state_2',
+										ReadFromMongo(),
+										transitions={'continue': 'Move Panda 2 to initial_2', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'entry_name': 'panda_2_init', 'joints_data': 'init_position2'})
+
 
 
 		with _state_machine:
-			# x:112 y:39
+			# x:513 y:35
 			OperatableStateMachine.add('Cell init',
 										_sm_cell_init_6,
 										transitions={'finished': 'Cell runing', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-										remapping={'TR': 'TR', 'panda1_init_position': 'panda1_init_position', 'open_hand': 'open_hand', 'FA': 'FA'})
+										remapping={'TR': 'TR', 'panda1_init_position': 'panda1_init_position', 'open_hand': 'open_hand', 'FA': 'FA', 'panda_2_init': 'panda_2_init'})
 
-			# x:108 y:289
+			# x:425 y:359
 			OperatableStateMachine.add('Cell runing',
 										_sm_cell_runing_5,
 										transitions={'finished': 'Cell shotdown', 'failed': 'failed'},

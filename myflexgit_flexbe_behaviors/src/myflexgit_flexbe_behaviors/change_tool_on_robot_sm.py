@@ -64,6 +64,7 @@ class ChangetoolonrobotSM(Behavior):
 		_state_machine.userdata.tool_drop_aim = 'panda2_tool1_aim1'
 		_state_machine.userdata.tool_take_aim = 'panda2_tool2_aim1'
 		_state_machine.userdata.trans_value = [0.0, 0.0, -0.008]
+		_state_machine.userdata.demo_point = 'panda_2_beffore_tray'
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
@@ -147,9 +148,28 @@ class ChangetoolonrobotSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_move_over_take_location_2_4 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['position_name'])
+		_sm_move_over_take_location_2_2_4 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['position_name'])
 
-		with _sm_move_over_take_location_2_4:
+		with _sm_move_over_take_location_2_2_4:
+			# x:182 y:50
+			OperatableStateMachine.add('Read robot position',
+										ReadFromMongo(),
+										transitions={'continue': 'Move to robot position', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'entry_name': 'position_name', 'joints_data': 'joints_positions'})
+
+			# x:500 y:117
+			OperatableStateMachine.add('Move to robot position',
+										CallJointTrap(max_vel=0.7, max_acl=0.7, namespace=self.namespace),
+										transitions={'continue': 'finished', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Low},
+										remapping={'joints_data': 'joints_positions', 'joint_values': 'joint_values'})
+
+
+		# x:30 y:365, x:130 y:365
+		_sm_move_over_take_location_2_5 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['position_name'])
+
+		with _sm_move_over_take_location_2_5:
 			# x:182 y:50
 			OperatableStateMachine.add('Read robot position',
 										ReadFromMongo(),
@@ -166,9 +186,9 @@ class ChangetoolonrobotSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_move_over_take_location_5 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['position_name'])
+		_sm_move_over_take_location_6 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['position_name'])
 
-		with _sm_move_over_take_location_5:
+		with _sm_move_over_take_location_6:
 			# x:182 y:50
 			OperatableStateMachine.add('Read robot position',
 										ReadFromMongo(),
@@ -185,9 +205,9 @@ class ChangetoolonrobotSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_move_over_drop_location_2_6 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['position_name'])
+		_sm_move_over_drop_location_2_7 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['position_name'])
 
-		with _sm_move_over_drop_location_2_6:
+		with _sm_move_over_drop_location_2_7:
 			# x:182 y:50
 			OperatableStateMachine.add('Read robot position',
 										ReadFromMongo(),
@@ -204,9 +224,9 @@ class ChangetoolonrobotSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_move_over_drop_location_7 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['position_name'])
+		_sm_move_over_drop_location_8 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['position_name'])
 
-		with _sm_move_over_drop_location_7:
+		with _sm_move_over_drop_location_8:
 			# x:182 y:50
 			OperatableStateMachine.add('Read robot position',
 										ReadFromMongo(),
@@ -216,7 +236,7 @@ class ChangetoolonrobotSM(Behavior):
 
 			# x:500 y:117
 			OperatableStateMachine.add('Move to robot position',
-										CallJointTrap(max_vel=self.max_vel, max_acl=self.max_acl, namespace=self.namespace),
+										CallJointTrap(max_vel=0.7, max_acl=0.7, namespace=self.namespace),
 										transitions={'continue': 'finished', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Low},
 										remapping={'joints_data': 'joints_positions', 'joint_values': 'joint_values'})
@@ -226,7 +246,7 @@ class ChangetoolonrobotSM(Behavior):
 		with _state_machine:
 			# x:53 y:60
 			OperatableStateMachine.add('Move over drop location',
-										_sm_move_over_drop_location_7,
+										_sm_move_over_drop_location_8,
 										transitions={'finished': 'Move to drop_2', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'position_name': 'before_drop_location_name'})
@@ -240,24 +260,31 @@ class ChangetoolonrobotSM(Behavior):
 
 			# x:987 y:256
 			OperatableStateMachine.add('Move over drop location_2',
-										_sm_move_over_drop_location_2_6,
+										_sm_move_over_drop_location_2_7,
 										transitions={'finished': 'Move over take location', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'position_name': 'before_drop_location_name'})
 
 			# x:1126 y:530
 			OperatableStateMachine.add('Move over take location',
-										_sm_move_over_take_location_5,
+										_sm_move_over_take_location_6,
 										transitions={'finished': 'Move to take _2', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'position_name': 'after_take_location_name'})
 
-			# x:68 y:530
+			# x:146 y:600
 			OperatableStateMachine.add('Move over take location_2',
-										_sm_move_over_take_location_2_4,
-										transitions={'finished': 'finished', 'failed': 'failed'},
+										_sm_move_over_take_location_2_5,
+										transitions={'finished': 'Move over take location_2_2', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'position_name': 'after_take_location_name'})
+
+			# x:167 y:318
+			OperatableStateMachine.add('Move over take location_2_2',
+										_sm_move_over_take_location_2_2_4,
+										transitions={'finished': 'finished', 'failed': 'failed'},
+										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
+										remapping={'position_name': 'demo_point'})
 
 			# x:513 y:41
 			OperatableStateMachine.add('Move to drop',
@@ -296,7 +323,7 @@ class ChangetoolonrobotSM(Behavior):
 
 			# x:547 y:653
 			OperatableStateMachine.add('Press to tool',
-										CallCartRel(exe_time=3, namespace='panda_2'),
+										CallCartRel(exe_time=2, namespace='panda_2'),
 										transitions={'continue': 'Lock tool', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Low},
 										remapping={'trans_value': 'trans_value', 'success': 'success'})
@@ -316,7 +343,7 @@ class ChangetoolonrobotSM(Behavior):
 
 			# x:431 y:504
 			OperatableStateMachine.add('Wait to lock_2',
-										WaitState(wait_time=2),
+										WaitState(wait_time=1),
 										transitions={'done': 'Open air block'},
 										autonomy={'done': Autonomy.Low})
 
