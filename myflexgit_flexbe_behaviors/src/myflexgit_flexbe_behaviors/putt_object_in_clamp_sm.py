@@ -126,12 +126,19 @@ class PuttobjectinclampSM(Behavior):
 
 
 		with _state_machine:
-			# x:114 y:44
-			OperatableStateMachine.add('Release object_2',
-										MoveSoftHand(motion_duration=3, motion_timestep=0.1),
-										transitions={'continue': 'Pick object', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Low},
-										remapping={'goal_hand_pos': 'open_hand', 'success': 'success'})
+			# x:43 y:209
+			OperatableStateMachine.add('Close clamp_2_2',
+										ActivateRaspiDigitalOuput(service_name='/obr_block2_ON'),
+										transitions={'continue': 'Close clamp_2', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.High, 'failed': Autonomy.High},
+										remapping={'value': 'TR', 'success': 'success'})
+
+			# x:43 y:147
+			OperatableStateMachine.add('Close clamp_2',
+										ActivateRaspiDigitalOuput(service_name=self.clamp_service_name),
+										transitions={'continue': 'Release object_2', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.High, 'failed': Autonomy.High},
+										remapping={'value': 'FA', 'success': 'success'})
 
 			# x:517 y:20
 			OperatableStateMachine.add('Grab object',
@@ -165,6 +172,13 @@ class PuttobjectinclampSM(Behavior):
 			OperatableStateMachine.add('Release object',
 										MoveSoftHand(motion_duration=3, motion_timestep=0.1),
 										transitions={'continue': 'wait to drop', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Low},
+										remapping={'goal_hand_pos': 'open_hand', 'success': 'success'})
+
+			# x:114 y:44
+			OperatableStateMachine.add('Release object_2',
+										MoveSoftHand(motion_duration=3, motion_timestep=0.1),
+										transitions={'continue': 'Pick object', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Low},
 										remapping={'goal_hand_pos': 'open_hand', 'success': 'success'})
 

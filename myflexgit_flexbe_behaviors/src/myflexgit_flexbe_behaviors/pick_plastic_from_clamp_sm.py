@@ -52,7 +52,7 @@ class PickplasticfromclampSM(Behavior):
 
 
 	def create(self):
-		# x:1121 y:485, x:701 y:512
+		# x:219 y:431, x:80 y:225
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['clamp_waiting_location_name', 'closed_hand_clamp', 'clamp_pick_location_name', 'clamp_above_location_name'])
 		_state_machine.userdata.TR = True
 		_state_machine.userdata.open_hand = [0.1]
@@ -166,63 +166,63 @@ class PickplasticfromclampSM(Behavior):
 
 
 		with _state_machine:
-			# x:94 y:57
+			# x:53 y:26
 			OperatableStateMachine.add('Open clamp',
 										ActivateRaspiDigitalOuput(service_name=self.clamp_service_name),
 										transitions={'continue': 'Release hand', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Low},
 										remapping={'value': 'FA', 'success': 'success'})
 
-			# x:459 y:12
+			# x:609 y:20
 			OperatableStateMachine.add('Move in clamp',
 										_sm_move_in_clamp_4,
 										transitions={'finished': 'Grab object', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'position_name': 'clamp_pick_location_name'})
 
-			# x:284 y:40
+			# x:430 y:19
 			OperatableStateMachine.add('Move over clamp',
 										_sm_move_over_clamp_3,
 										transitions={'finished': 'Move in clamp', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'position_name': 'clamp_above_location_name'})
 
-			# x:713 y:123
+			# x:711 y:173
 			OperatableStateMachine.add('Move over clamp_2',
 										_sm_move_over_clamp_2_2,
 										transitions={'finished': 'Put plastic in bin', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'position_name': 'clamp_above_2'})
 
-			# x:1145 y:202
+			# x:716 y:405
 			OperatableStateMachine.add('Move to safe spot',
 										_sm_move_to_safe_spot_1,
 										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'position_name': 'clamp_waiting_location_name'})
 
-			# x:748 y:21
+			# x:717 y:244
 			OperatableStateMachine.add('Put plastic in bin',
 										_sm_put_plastic_in_bin_0,
 										transitions={'finished': 'Release object', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'position_name': 'plastic_bin_location_name'})
 
-			# x:175 y:169
+			# x:236 y:24
 			OperatableStateMachine.add('Release hand',
 										MoveSoftHand(motion_duration=3, motion_timestep=0.1),
 										transitions={'continue': 'Move over clamp', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Low},
 										remapping={'goal_hand_pos': 'open_hand', 'success': 'success'})
 
-			# x:931 y:28
+			# x:720 y:325
 			OperatableStateMachine.add('Release object',
 										MoveSoftHand(motion_duration=2, motion_timestep=0.1),
 										transitions={'continue': 'Move to safe spot', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Low},
 										remapping={'goal_hand_pos': 'open_hand', 'success': 'success'})
 
-			# x:527 y:137
+			# x:712 y:110
 			OperatableStateMachine.add('Grab object',
 										MoveSoftHand(motion_duration=3, motion_timestep=0.1),
 										transitions={'continue': 'Move over clamp_2', 'failed': 'failed'},
