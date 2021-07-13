@@ -37,7 +37,7 @@ class PuttobjectinclampSM(Behavior):
 		self.add_parameter('clamp_service_name', '/obr_activate')
 		self.add_parameter('max_acl', 1)
 		self.add_parameter('namespace', 'panda_1')
-		self.add_parameter('max_vel', 1)
+		self.add_parameter('max_vel', 0.1)
 
 		# references to used behaviors
 
@@ -147,10 +147,10 @@ class PuttobjectinclampSM(Behavior):
 										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Low},
 										remapping={'goal_hand_pos': 'closed_hand_table', 'success': 'success'})
 
-			# x:1145 y:202
+			# x:1144 y:118
 			OperatableStateMachine.add('Move to safe spot',
 										_sm_move_to_safe_spot_2,
-										transitions={'finished': 'finished', 'failed': 'failed'},
+										transitions={'finished': 'Close clamp', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'position_name': 'clamp_waiting_location_name'})
 
@@ -185,13 +185,13 @@ class PuttobjectinclampSM(Behavior):
 			# x:1134 y:25
 			OperatableStateMachine.add('wait to drop',
 										WaitState(wait_time=1),
-										transitions={'done': 'Close clamp'},
+										transitions={'done': 'Move to safe spot'},
 										autonomy={'done': Autonomy.Low})
 
-			# x:1163 y:122
+			# x:1140 y:196
 			OperatableStateMachine.add('Close clamp',
 										ActivateRaspiDigitalOuput(service_name=self.clamp_service_name),
-										transitions={'continue': 'Move to safe spot', 'failed': 'failed'},
+										transitions={'continue': 'finished', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.High, 'failed': Autonomy.High},
 										remapping={'value': 'TR', 'success': 'success'})
 
