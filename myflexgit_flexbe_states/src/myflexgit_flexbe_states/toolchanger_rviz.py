@@ -3,7 +3,7 @@
 import sys
 import rospy
 from flexbe_core import EventState, Logger
-from robot_module_msgs.srv import ToolChanger
+from robot_module_msgs.srv import rviz_tools
 
 
 class SwitchToolsRVIZ(EventState):
@@ -12,19 +12,15 @@ class SwitchToolsRVIZ(EventState):
     Uses ToolChanger.srv  
     
     -- toolname     string  tool name (screwdriver, vacuumgripper, parallelgripper)
-    -- groupname    string  ns (group) of tool (same name as tool name)
-    -- transform_to string  attach to robot (panda_2/panda_link8)
-    -- hold         bool    True or False
+    -- framename    string  attach to robot (panda_2/panda_link8)
     <= continue             Written successfully
     <= failed               Failed
     '''
 
-    def __init__(self, toolname, groupname, transform_to, hold):
+    def __init__(self, toolname, framename):
         super(SwitchToolsRVIZ, self).__init__(outcomes = ['continue', 'failed'])
         self.tool_name = toolname
-        self.group_name = groupname
-        self.transform_to = transform_to
-        self.hold = hold
+        self.frame_name = framename
            
     def on_enter(self, userdata):
         Logger.loginfo("Started service client")
@@ -32,11 +28,13 @@ class SwitchToolsRVIZ(EventState):
 
     def execute(self, userdata):
         # execution of rosservice call
-        rospy.wait_for_service("/tool_change")
+        frames = "/change_tool_frame/" + str(self.tool_name)
+        rospy.wait_for_service(frames)
         try:
-            change_tool = rospy.ServiceProxy("/tool_change", ToolChanger)
-            sendit = change_tool(self.tool_name,self.group_name, self.transform_to, self.hold)            
-            Logger.loginfo("Executing rosservice call to /tool_change and waiting for reply ...")
+
+            change_tool = rospy.ServiceProxy(frames, rviz_tools)
+            sendit = change_tool(self.frame_name)            
+            Logger.loginfo("Executing rosservice call to /change_tool_frame/{} and waiting for reply ...".format(self.tool_name))
             Logger.loginfo("Reply: {}".format(sendit))
             return 'continue'
         except rospy.ServiceException as e:
@@ -44,5 +42,5 @@ class SwitchToolsRVIZ(EventState):
             return 'failed'
 
     def on_exit(self, userdata):
-        Logger.loginfo("Successfully called service /tool_change")
+        Logger.loginfo("Successfully called service /change_tool_frame/{}".format(self.tool_name))
         return 'continue'
