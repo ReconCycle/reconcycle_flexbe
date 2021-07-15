@@ -7,7 +7,7 @@ from flexbe_core import EventState, Logger
 import robot_module_msgs.msg
 
 
-class ReadT1(EventState):
+class ReadTFCart(EventState):
     
     '''
     Implements a state that reads TF data
@@ -24,7 +24,7 @@ class ReadT1(EventState):
 
     def __init__(self, target_frame, source_frame):
         rospy.loginfo('__init__ callback happened.')   
-        super(ReadT1, self).__init__(outcomes = ['continue', 'failed'], output_keys = ['t1_data'])
+        super(ReadTFCart, self).__init__(outcomes = ['continue', 'failed'], output_keys = ['t1_data'])
         
         # Initialize the TF listener
         self.listener = tf.TransformListener()  
