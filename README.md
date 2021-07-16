@@ -69,6 +69,22 @@ Python files represent FlexBe states which are joined together into one behavior
 	- input parameters:
 		- motion_duration -> float 
 		- motion_timestep -> float
+
+- [toolchanger_rviz](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/toolchanger_rviz.py)
+	- Added call to /change_tool_frame/$tool_name
+	- output_keys = None
+	- input_keys = None
+	- input parameters:
+		- toolname -> string e.g. "screwdriver"
+		- framename -> string  e.g. "tool_frame_1"
+
+- [adjust_tool_in_rviz](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/adjust_tool_in_rviz.py)
+	- Added call to /change_transform_matrix/$tool_name 
+	- output_keys = None
+	- input_keys = None
+		- input parameters:
+			- toolname -> string  e.g. "screwdirver"
+			- matrix -> string e.g. '[0 0 0 1 0 0]' 
 	
 
 # Behaviors example
