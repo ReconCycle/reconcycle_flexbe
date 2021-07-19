@@ -44,7 +44,7 @@ class WriteToMongoPOSE(EventState):
         # Write to MongoDB        
         Logger.loginfo("Writing to mongoDB _id: {}...".format(userdata.entry_name))
         
-        pos = Pose(position=position, orientation=rotation)
+        pos = Pose()
         pos.position.x = position[0]
         pos.position.y = position[1]
         pos.position.z = position[2]
