@@ -42,7 +42,7 @@ class WriteToMongoPOSE(EventState):
         # Write to MongoDB        
         Logger.loginfo("Writing to mongoDB _id: {}...".format(userdata.entry_name))
 
-        pos = Pose(position=postion, orientation=rotation)
+        pos = Pose(position=position, orientation=rotation)
         
         try: 
             present_data = self.msg_store.query_named(str(userdata.entry_name), Pose._type)
