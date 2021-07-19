@@ -47,7 +47,7 @@ class ReadFromMongoPOSE(EventState):
             self.read_from_mongodb()
 
             data_from_db = self.read_data
-            position_data = list(data_from_db.position) + list(data_from_db.orientation)
+            position_data = data_from_db
             Logger.loginfo("Position data read from DB: \n {}".format(position_data))      
 
         except rospy.ServiceException as e:
