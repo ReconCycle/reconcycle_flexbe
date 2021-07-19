@@ -9,8 +9,8 @@ from robot_module_msgs.srv import SetList
 class AdjustToolPositionAndRotationRVIZ(EventState):
 
     '''
-    Adjust tool postition and rotation '[x y z rotx roty rotz]' in /change_transform_matrix/$(toolname)
-    Example: rosservice call /change_transform_matrix/screwdriver "matrix: '[0 0 0 1 0 0]'"  
+    Adjust tool postition and rotation [x,y,z,rotx,roty,rotz] in /change_transform_matrix/$(toolname)
+    Example: rosservice call /change_transform_matrix/screwdriver "matrix: [0,0,0,1,0,0]"  
     
     -- toolname     string  tool name (screwdriver, vacuumgripper, parallelgripper)
     -- matrix       string  attach to robot (e.g. 'panda_2/panda_link8')
