@@ -39,10 +39,20 @@ class WriteToMongoPOSE(EventState):
         #---------------------------------------------------------------------------------------
         rotation = tf.transformations.quaternion_from_euler(rotation[0], rotation[1], rotation[2])
 
+
+
         # Write to MongoDB        
         Logger.loginfo("Writing to mongoDB _id: {}...".format(userdata.entry_name))
-
+        
         pos = Pose(position=position, orientation=rotation)
+        pos.position.x = position[0]
+        pos.position.y = position[1]
+        pos.position.z = position[2]
+        pos.orientation.x = rotation[0]
+        pos.orientation.y = rotation[1]
+        pos.orientation.z = rotation[2]
+        pos.orientation.w = rotation[3]
+
         
         try: 
             present_data = self.msg_store.query_named(str(userdata.entry_name), Pose._type)
