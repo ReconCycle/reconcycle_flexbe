@@ -11,13 +11,12 @@ import actionlib
 class CallActionTFCartLin(EventState):
     
     '''
-    Implements a state that reads TF data
+    Implements a state that reads Pose() from input and sends them to ns/cart_lin_action_server
     [...]       
 
     #< t2_out       Data                Send TF data
-
-    ># t2_data      Pose()              Data from target
-    -- namespace         string []  namespace of publish topic  
+    ># t2_data      Pose()              Data from target Pose() from mongodb
+    -- namespace    string              namespace of publish topic  
 
     <= continue                         Written successfully
     <= failed                           Failed
@@ -36,12 +35,12 @@ class CallActionTFCartLin(EventState):
         Logger.loginfo("Started sending goal...")
         
         # create goal
-        goal = robot_module_msgs.msg.CartLinTaskGoal([userdata.t2_data.pose], 1, None)  
+        goal = robot_module_msgs.msg.CartLinTaskGoal([userdata.t2_data], 1, None)  
         Logger.loginfo("Goal created: {}".format(goal))
         try:
             # send goal and wait for result
             self._client.send_goal(goal)
-            Logger.loginfo("Goal sent: {}".format(str(userdata.t2_data.pose)))
+            Logger.loginfo("Goal sent: {}".format(str(userdata.t2_data)))
             self._client.wait_for_result()
             
         except Exception as e:
