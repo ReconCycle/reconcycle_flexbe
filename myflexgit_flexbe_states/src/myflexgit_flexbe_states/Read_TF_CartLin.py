@@ -59,7 +59,7 @@ class ReadTFCartLin(EventState):
         try:
             t_pose = self.buffer.lookup_transform(self.source_frame, self.target_frame, rospy.Time())
             rot = tf.transformations.quaternion_from_euler(rot[0], rot[1], rot[2])
-            offset_z = PoseStamped(pose=Pose(position=Point(off[0], off[1], off[2]), orientation=Quaternion(rot[0], rot[1], rot[2], 1)))
+            offset_z = PoseStamped(pose=Pose(position=Point(off[0], off[1], off[2]), orientation=Quaternion(rot[0], rot[1], rot[2], rot[3])))
             t_pose_target = tf2_geometry_msgs.do_transform_pose(offset_z, t_pose)
             Logger.loginfo("source_frame: {}".format(self.source_frame))
             Logger.loginfo("target_frame: {}".format(self.target_frame))
