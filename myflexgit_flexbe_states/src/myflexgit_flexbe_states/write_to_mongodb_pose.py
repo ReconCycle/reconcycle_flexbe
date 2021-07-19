@@ -35,7 +35,7 @@ class WriteToMongoPOSE(EventState):
         #---------------------------------------------------------------------------------------
         # userdata.entry_data for JointState format
         position = userdata.position
-        rotation = userdata.rotation
+        rotation = userdata.orientation
         #---------------------------------------------------------------------------------------
         rotation = tf.transformations.quaternion_from_euler(rotation[0], rotation[1], rotation[2])
 
