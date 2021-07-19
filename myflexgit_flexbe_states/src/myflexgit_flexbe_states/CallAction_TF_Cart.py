@@ -8,7 +8,7 @@ import robot_module_msgs.msg
 import actionlib
 
 
-class CallT1(EventState):
+class CallActionTFCart(EventState):
     
     '''
     Implements a state that reads TF data
@@ -24,7 +24,7 @@ class CallT1(EventState):
 
     def __init__(self):
         rospy.loginfo('__init__ callback happened.')   
-        super(CallT1, self).__init__(outcomes = ['continue', 'failed'], input_keys = ['t1_data'], output_keys = ['t1_out'])
+        super(CallActionTFCart, self).__init__(outcomes = ['continue', 'failed'], input_keys = ['t1_data'], output_keys = ['t1_out'])
         
         # After thest change 'panda_2/cart_trap_vel_action_server' to 'cart_trap_vel_action_server' !
         self._topic = 'panda_2/cart_trap_vel_action_server'
