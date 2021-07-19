@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="EMO demo">
+
+	<executable package_path="myflexgit_flexbe_behaviors.emo_demo_sm" class="EMOdemoSM" />
+	<tagstring>qb_hand, vise, cartesian_move, reconcycle</tagstring>
+	<author>Rok Pahic...</author>
+	<date>Wed Jul 14 2021</date>
+	<description>
+		Demo za EMO:
+Preberi pozicijo HCA iz kamere
+Poberi z Qb hand
+Daj v primez
+Stisni in zavrti tja in nazaj
+Spusti primez 
+Poberi z robotm
+Odlozi nazaj na zacetek
+Ponovi 
+
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>
