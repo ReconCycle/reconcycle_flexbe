@@ -16,18 +16,20 @@ class CallActionTFCartLin(EventState):
 
     #< t2_out       Data                Send TF data
 
-    ># t2_data      Pose()              Data from target  
+    ># t2_data      Pose()              Data from target
+    -- namespace         string []  namespace of publish topic  
 
     <= continue                         Written successfully
     <= failed                           Failed
     '''
 
-    def __init__(self):
+    def __init__(self, namespace):
         rospy.loginfo('__init__ callback happened.')   
         super(CallActionTFCartLin, self).__init__(outcomes = ['continue', 'failed'], input_keys = ['t2_data'], output_keys = ['t2_out'])
         
+        self.ns = namespace
         # Declaring topic and client
-        self._topic = 'cart_lin_action_server'
+        self._topic = self.ns + '/cart_lin_action_server'
         self._client = actionlib.SimpleActionClient(self._topic, robot_module_msgs.msg.CartLinTaskAction)
 
     def on_enter(self, userdata):
