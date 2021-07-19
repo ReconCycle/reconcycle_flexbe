@@ -10,7 +10,7 @@ from geometry_msgs.msg import Pose
 #for deblocking parallel execution in flexbe
 import threading
 
-class ReadFromMongo(EventState):
+class ReadFromMongoPOSE(EventState):
 
     '''
     Implements a state that writes data to MongoDB
@@ -27,7 +27,7 @@ class ReadFromMongo(EventState):
 
     #-- calculation  function        The function that performs [...]
     def __init__(self):      
-        super(ReadFromMongo, self).__init__(outcomes = ['continue', 'failed'], input_keys = ['entry_name'], output_keys = ['joints_data'])
+        super(ReadFromMongoPOSE, self).__init__(outcomes = ['continue', 'failed'], input_keys = ['entry_name'], output_keys = ['joints_data'])
         self.reachable = True
 
         self.msg_store = MessageStoreProxy()
