@@ -114,8 +114,17 @@ Python files represent FlexBe states which are joined together into one behavior
 	- output_keys = ['active_controller']
 	- input_keys = None
 	- input parameteres:
-		- real_controllers -> string[]
+		- real_controllers -> string[] array
 		- robot_name -> string
+
+- [switch_controller_service_client (FlexBe state name: SwitchControllerProxyClient)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/switch_controller_service_client.py)
+	- output_keys = None
+	- input_keys = None
+	- input parameteres:
+		- robot_name -> string
+		- start_controller -> string[] array
+		- stop_controller -> string[] array
+		- strictness -> int32
 
 # Behaviors example
 Behaviors are modeled as hierarchical state machines where states correspond to active actions and transitions describe the reaction to outcomes.
