@@ -25,52 +25,62 @@ This repository includes FlexBe states [python files](#python-files)
 Python files represent FlexBe states which are joined together into one behavior.
 
 ## ROS 1  
-- [write_to_mongodb](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/write_to_mongodb.py)
-	- input keys: entry_data = [joint1_pos_data, ...., joint7_pos_data].
-	- _id to write to in mongodb (entry_name) e.q. entry_name="position1".
- 
-- [read_from_mongodb](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/read_from_mongodb.py)
-	- input keys: _id to read from in mongodb (entry_name).
-	- output keys: joints_data = [joints_position_data_read_from_mongodb].
+- [write_to_mongodb (FlexBe state name: WriteToMongo)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/write_to_mongodb.py)
+	- input keys: ['entry_data'] = JointState(position)
+	- _id to write to in mongodb (['entry_name']) e.q. entry_name="position1".
 
-- [call_joint_trap_vel_action_server](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/call_joint_trap_vel_action_server.py)
-	- Input keys: JointState() data construction (joints_data = position).
-	- Output keys: JointState() data construction (joint_values)
 
-- [Read_TF_Cart](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/Read_TF_Cart.py)
+- [read_from_mongodb (FlexBe state name: ReadFromMongo)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/read_from_mongodb.py)
+	- input keys: _id to read from in mongodb (['entry_name']).
+	- output keys: ['joints_data'] = JointState(position)
+
+
+- [call_joint_trap_vel_action_server (FlexBe state name: CallJointTrap)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/call_joint_trap_vel_action_server.py)
+	- Input keys: ['joints_data'] = JointState(position)
+	- Output keys:[joint_values'] = JointState(position)
+
+
+- [Read_TF_Cart (FlexBe state name: ReadTFCart))](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/Read_TF_Cart.py)
 	- Added target1: lookupTransform()
-	- output_keys = ['t1_data']
+	- output_keys = ['t1_data'] = Pose()
 	- input parameters: 
 		- target_frame -> string
     	- source_frame -> string
+	
 
-- [CallAction_TF_Cart](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/CallAction_TF_Cart.py)
+- [CallAction_TF_Cart (FlexBe state name: CallActionTFCart)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/CallAction_TF_Cart.py)
 	- Added call to cart_trap_vel_action_server
-	- input_keys = ['t1_data']
-	- output_keys = ['t1_out']
+	- input_keys = ['t1_data'] = Pose()
+	- output_keys = ['t1_out'] = Pose()
+	
 
-- [Read_TF_CartLin](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/Read_TF_CartLin.py)
+- [Read_TF_CartLin (FlexBe state name: ReadTFCartLin)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/Read_TF_CartLin.py)
 	- Added target2: lookupTransform()
-	- output_keys = ['t2_data']
-	- input_keys = ['offset']
+	- output_keys = ['t2_data'] = Pose()
+	- input_keys = ['offset'] -> list [x,y,z]
+	- input_keys =['rotation'] -> list [rotx,roty,rotz]
 	- input parameters:
 		- target_frame -> string
-    		- source_frame -> string
+    	- source_frame -> string
+	
 
-- [CallAction_TF_CartLin](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/CallAction_TF_CartLin.py)
+- [CallAction_TF_CartLin (FlexBe state name: CallActionTFCartLin)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/CallAction_TF_CartLin.py)
 	- Added call to cart_lin_task_action_server
-	- input_keys = ['t2_data']
-	- output_keys = ['t2_out']
+	- input_keys = ['t2_data'] = Pose()
+	- output_keys = ['t2_out'] -> result data
+	- input parameters:
+		- namespace -> string
 
-- [Call_joint_min_jerk_action_server](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/Call_joint_min_jerk_action_server.py)
+- [Call_joint_min_jerk_action_server (FlexBe state name: CallJointMinJerk)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/Call_joint_min_jerk_action_server.py)
 	- Added call to joint_min_jerk_action_server
-	- output_keys = ['minjerk_out']
-	- input_keys = ['goal_joint_pos']
+	- output_keys = ['minjerk_out'] reply -> []
+	- input_keys = ['goal_joint_pos'] list -> [j1...j7]
 	- input parameters:
 		- motion_duration -> float 
 		- motion_timestep -> float
+		- namespace -> string
 
-- [toolchanger_rviz](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/toolchanger_rviz.py)
+- [toolchanger_rviz (FlexBe state name: SwitchToolsRVIZ)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/toolchanger_rviz.py)
 	- Added call to /change_tool_frame/$tool_name
 	- output_keys = None
 	- input_keys = None
@@ -78,14 +88,34 @@ Python files represent FlexBe states which are joined together into one behavior
 		- toolname -> string e.g. "screwdriver"
 		- framename -> string  e.g. "tool_frame_1"
 
-- [adjust_tool_in_rviz](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/adjust_tool_in_rviz.py)
+- [adjust_tool_in_rviz (FlexBe state name: AdjustToolPositionAndRotationRVIZ)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/adjust_tool_in_rviz.py)
 	- Added call to /change_transform_matrix/$tool_name 
 	- output_keys = None
 	- input_keys = None
-		- input parameters:
-			- toolname -> string  e.g. "screwdirver"
-			- matrix -> string e.g. '[0 0 0 1 0 0]' 
+	- input parameters:
+		- toolname -> string  e.g. "screwdirver"
+		- matrix -> string e.g. '[0 0 0 1 0 0]' -> '[x,y,z,rotx,roty,rotz]'
+
+- [load_controller_service_client (FlexBe state name: LoadControllerProxyClient)](//myflexgit_flexbe_states/src/myflexgit_flexbe_states/load_controller_service_client.py)
+	- output_keys = None
+	- input_keys = None
+	- input parameteres:
+		- desired_controller -> string
+		- robot_name -> string
+
+- [unload_controller_service_client (FlexBe state name: UnloadControllerProxyClient)](//myflexgit_flexbe_states/src/myflexgit_flexbe_states/unload_controller_service_client.py)
+	- output_keys = None
+	- input_keys = None
+	- input parameteres:
+		- desired_controller -> string
+		- robot_name -> string
 	
+- [active_controller_service_client (FlexBe state name: ActiveControllerProxyClient)](//myflexgit_flexbe_states/src/myflexgit_flexbe_states/active_controller_service_client.py)
+	- output_keys = ['active_controller']
+	- input_keys = None
+	- input parameteres:
+		- real_controllers -> string[]
+		- robot_name -> string
 
 # Behaviors example
 Behaviors are modeled as hierarchical state machines where states correspond to active actions and transitions describe the reaction to outcomes.
