@@ -96,21 +96,21 @@ Python files represent FlexBe states which are joined together into one behavior
 		- toolname -> string  e.g. "screwdirver"
 		- matrix -> string e.g. '[0 0 0 1 0 0]' -> '[x,y,z,rotx,roty,rotz]'
 
-- [load_controller_service_client (FlexBe state name: LoadControllerProxyClient)](//myflexgit_flexbe_states/src/myflexgit_flexbe_states/load_controller_service_client.py)
+- [load_controller_service_client (FlexBe state name: LoadControllerProxyClient)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/load_controller_service_client.py)
 	- output_keys = None
 	- input_keys = None
 	- input parameteres:
 		- desired_controller -> string
 		- robot_name -> string
 
-- [unload_controller_service_client (FlexBe state name: UnloadControllerProxyClient)](//myflexgit_flexbe_states/src/myflexgit_flexbe_states/unload_controller_service_client.py)
+- [unload_controller_service_client (FlexBe state name: UnloadControllerProxyClient)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/unload_controller_service_client.py)
 	- output_keys = None
 	- input_keys = None
 	- input parameteres:
 		- desired_controller -> string
 		- robot_name -> string
 	
-- [active_controller_service_client (FlexBe state name: ActiveControllerProxyClient)](//myflexgit_flexbe_states/src/myflexgit_flexbe_states/active_controller_service_client.py)
+- [active_controller_service_client (FlexBe state name: ActiveControllerProxyClient)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/active_controller_service_client.py)
 	- output_keys = ['active_controller']
 	- input_keys = None
 	- input parameteres:
