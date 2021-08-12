@@ -14,14 +14,17 @@ class FrankaErrorRecoveryActionProxy(EventState):
     '''
     FlexBe ErrorRecoveryAction client -> No inputs or outputs, only outcomes.
 
+    -- robot_name   string
+
     <= continue
     <= failed
     '''
 
-    def __init__(self):
+    def __init__(self, robot_name):
         super(FrankaErrorRecoveryActionProxy, self).__init__(outcomes = ['continue', 'failed'])
-
-        self.topic = "/panda_1/franka_control/error_recovery"
+        
+        self.robot_name = robot_name
+        self.topic = str(self.robot_name) + "/franka_control/error_recovery"
         Logger.loginfo("Starting franka error recovery action proxy")
         self.recovery_client = ProxyActionClient({self.topic: ErrorRecoveryAction})
 
@@ -56,3 +59,9 @@ class FrankaErrorRecoveryActionProxy(EventState):
         if not self.recovery_client.has_result(self.topic):
             self.recovery_client.cancel(self.topic)
             Logger.loginfo("Cancelled active action goal.")
+
+    def on_start(self):
+        pass
+
+    def on_stop(self):
+        pass
