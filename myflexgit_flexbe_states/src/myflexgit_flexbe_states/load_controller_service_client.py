@@ -58,3 +58,9 @@ class LoadControllerProxyClient(EventState):
     def on_exit(self, userdata):
         Logger.loginfo("Finished service client!")
         return 'continue'
+    
+    def on_start(self):
+        pass
+
+    def on_stop(self):
+        pass
