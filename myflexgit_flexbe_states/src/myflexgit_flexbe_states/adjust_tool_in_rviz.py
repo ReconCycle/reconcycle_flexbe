@@ -44,3 +44,9 @@ class AdjustToolPositionAndRotationRVIZ(EventState):
     def on_exit(self, userdata):
         Logger.loginfo("Successfully called service /change_transform_matrix/{}".format(self.tool_name))
         return 'continue'
+
+    def on_start(self):
+        pass
+
+    def on_stop(self):
+        pass

@@ -46,3 +46,9 @@ class GrabVisionObjectInRVIZ(EventState):
     def on_exit(self, userdata):
         Logger.loginfo("Successfully called service /move_object_with_panda")
         return 'continue'
+
+    def on_start(self):
+        pass
+
+    def on_stop(self):
+        pass
