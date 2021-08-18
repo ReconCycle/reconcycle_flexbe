@@ -38,7 +38,7 @@ class SetLoadProxyClient(EventState):
         
         # Topic and ServicerCaller init
         # using franka_msgs.srv.SetLoad
-        self.topic = str(self.robot_name) + "/franka_control/set_load"
+        self.topic = "/" + str(self.robot_name) + "/franka_control/set_load"
         self.client_proxy = ProxyServiceCaller({self.topic: SetLoad})
 
     

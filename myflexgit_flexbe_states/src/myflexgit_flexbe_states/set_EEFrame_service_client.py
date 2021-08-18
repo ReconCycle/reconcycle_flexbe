@@ -33,7 +33,7 @@ class SetEEFrameProxyClient(EventState):
         
         # Topic and ServicerCaller init
         # using franka_msgs.srv.SetEEFrame
-        self.topic = str(self.robot_name) + "/franka_control/set_EE_frame"
+        self.topic = "/" + str(self.robot_name) + "/franka_control/set_EE_frame"
         self.client_proxy = ProxyServiceCaller({self.topic: SetEEFrame})
 
     
