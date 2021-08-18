@@ -142,7 +142,7 @@ Python files represent FlexBe states which are joined together into one behavior
 		- EE_T_K      ->      float[16]   Vectorized EE-to-K transformation matrix , column-major.
     	- robot_name  ->     string      "panda_1" or "panda_2"
 
-- [set_EEFrame_service_client (FlexBe state name: SetEEFrameProxyClient](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/set_EEFrame_service_client.py)
+- [set_EEFrame_service_client (FlexBe state name: SetEEFrameProxyClient)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/set_EEFrame_service_client.py)
 	- output_keys = None
 	- input_keys = None
 	- input parameters:
