@@ -28,7 +28,7 @@ class UnloadControllerProxyClient(EventState):
         self.robot_name = robot_name
         
         # Topic and ServicerCaller init
-        self.topic = self.robot_name + "/controller_manager/unload_controller"
+        self.topic = "/" + self.robot_name + "/controller_manager/unload_controller"
         self.client_proxy = ProxyServiceCaller({self.topic: UnloadController})
 
     

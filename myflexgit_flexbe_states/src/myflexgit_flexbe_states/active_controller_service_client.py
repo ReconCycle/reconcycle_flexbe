@@ -29,7 +29,7 @@ class ActiveControllerProxyClient(EventState):
         self.real_controllers = real_controllers
 
         # Topic and ServicerCaller init
-        self.topic = str(self.robot_name) + "/controller_manager/list_controllers"
+        self.topic = "/" + str(self.robot_name) + "/controller_manager/list_controllers"
         self.client_proxy = ProxyServiceCaller({self.topic: ListControllers})
 
         # Variables declaration

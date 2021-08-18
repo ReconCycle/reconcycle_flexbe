@@ -32,7 +32,7 @@ class SwitchControllerProxyClient(EventState):
         self.robot_name = robot_name
         
         # Topic and ServicerCaller init
-        self.topic = self.robot_name + "/controller_manager/switch_controller"
+        self.topic = "/" + self.robot_name + "/controller_manager/switch_controller"
         self.client_proxy = ProxyServiceCaller({self.topic: SwitchController})
 
     

@@ -28,7 +28,7 @@ class LoadControllerProxyClient(EventState):
         self.robot_name = robot_name
         
         # Topic and ServicerCaller init
-        self.topic = str(self.robot_name) + "/controller_manager/load_controller"
+        self.topic = "/" + str(self.robot_name) + "/controller_manager/load_controller"
         self.client_proxy = ProxyServiceCaller({self.topic: LoadController})
 
     
