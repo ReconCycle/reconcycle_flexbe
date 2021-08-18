@@ -130,31 +130,31 @@ Python files represent FlexBe states which are joined together into one behavior
 	- output_keys = None
 	- input_keys = None
 	- input parameters:
-		- mass             float64     Mass of the load in [kg]. 
-    	- F_x_center_load  float64[3]  Translation from flange to center of mass of load F(xcload) in [m].
-    	- load_inertia     float64[9]  Inertia matrix I(load) in [kg x m^2], column-major.
-    	- robot_name       string      "panda_1" or "panda_2"
+		- mass         ->    float64     Mass of the load in [kg]. 
+    	- F_x_center_load ->  float64[3]  Translation from flange to center of mass of load F(xcload) in [m].
+    	- load_inertia ->    float64[9]  Inertia matrix I(load) in [kg x m^2], column-major.
+    	- robot_name   ->    string      "panda_1" or "panda_2"
 
 - [set_KFrame_service_client (FlexBe state name: SetKFrameProxyClient)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/set_KFrame_service_client.py)
 	- output_keys = None
 	- input_keys = None
 	- input parameters:
-		- EE_T_K           float[16]   Vectorized EE-to-K transformation matrix , column-major.
-    	- robot_name       string      "panda_1" or "panda_2"
+		- EE_T_K      ->      float[16]   Vectorized EE-to-K transformation matrix , column-major.
+    	- robot_name  ->     string      "panda_1" or "panda_2"
 
 - [set_EEFrame_service_client (FlexBe state name: SetEEFrameProxyClient](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/set_EEFrame_service_client.py)
 	- output_keys = None
 	- input_keys = None
 	- input parameters:
-		- NE_T_EE          float[16]   4x4 matrix -> Vectorized NE-to-EE transformation matrix , column-major.
-    	- robot_name       string      "panda_1" or "panda_2"
+		- NE_T_EE     ->     float[16]   4x4 matrix -> Vectorized NE-to-EE transformation matrix , column-major.
+    	- robot_name  ->     string      "panda_1" or "panda_2"
 
 - [set_joint_impedance_service_client (FlexBe state name: SetJointImpedanceProxyClient)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/set_joint_impedance_service_client.py)
 	- output_keys = None
 	- input_keys = None
 	- input parameters:
-		- joint_stiffness      float[7]    Joint impedance values
-    	- robot_name           string      "panda_1" or "panda_2"
+		- joint_stiffness  ->    float[7]    Joint impedance values
+    	- robot_name       ->    string      "panda_1" or "panda_2"
 
 
 # Behaviors example
