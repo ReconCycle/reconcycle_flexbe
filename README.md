@@ -153,9 +153,15 @@ Python files represent FlexBe states which are joined together into one behavior
 	- output_keys = None
 	- input_keys = None
 	- input parameters:
-		- joint_stiffness  ->    float[7]    Joint impedance values
+		- joint_stiffness  ->    float[7]    Joint impedance values for each joint
     	- robot_name       ->    string      "panda_1" or "panda_2"
 
+- [set_cartesian_impedance_service_client (FlexBe state name: SetCartesianImpedanceProxyClient)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/set_cartesian_impedance_service_client.py)
+	- output_keys = None
+	- input_keys = None
+	- input parameters:
+		- cartesian_stiffness  float[6]		[x, y, z, roll, pitch, yaw]
+    	- robot_name           string      	"panda_1" or "panda_2"
 
 # Behaviors example
 Behaviors are modeled as hierarchical state machines where states correspond to active actions and transitions describe the reaction to outcomes.
