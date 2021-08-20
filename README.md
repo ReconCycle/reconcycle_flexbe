@@ -160,8 +160,18 @@ Python files represent FlexBe states which are joined together into one behavior
 	- output_keys = None
 	- input_keys = None
 	- input parameters:
-		- cartesian_stiffness  float[6]		[x, y, z, roll, pitch, yaw]
-    	- robot_name           string      	"panda_1" or "panda_2"
+		- cartesian_stiffness	->	float[6]		[x, y, z, roll, pitch, yaw]
+    	- robot_name			->	string      	"panda_1" or "panda_2"
+
+- [set_force_torque_collision_behavior_service_client (FlexBe state name: SetForceTorqueCollisionProxyClient)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/set_force_torque_collision_behavior_service_client.py)
+	- output_keys = None
+	- input_keys = None
+	- input parameters:
+		- lower_torque_thresholds_nominal	->  float64[7]      Contact torque thresholds for each joint in [Nm]. 
+    	- upper_torque_thresholds_nominal	->  float64[7]      Collision torque thresholds for each joint in [Nm]. 
+    	- lower_force_thresholds_nominal	->   float64[6]      Contact force thresholds (x,y,z,R,P,Y) for in [N]. 
+    	- upper_force_thresholds_nominal	->   float64[6]      Collision force thresholds (x,y,z,R,P,Y) for in [N]. 
+    	- robot_name	->       string      "panda_1" or "panda_2"
 
 # Behaviors example
 Behaviors are modeled as hierarchical state machines where states correspond to active actions and transitions describe the reaction to outcomes.
