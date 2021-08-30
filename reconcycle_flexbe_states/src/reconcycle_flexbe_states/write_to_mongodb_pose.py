@@ -32,6 +32,10 @@ class WriteToMongoPOSE(EventState):
         self.msg_store = MessageStoreProxy()
 
     def execute(self, userdata):
+        pass
+
+             
+    def on_enter(self, userdata):
         #---------------------------------------------------------------------------------------
         # userdata.entry_data for JointState format
         position = userdata.position
@@ -71,10 +75,6 @@ class WriteToMongoPOSE(EventState):
             self.reachable = False
     
         return 'continue'
-             
-    def on_enter(self, userdata):
-        Logger.loginfo('Starting write to MongoDB...')
-
     def on_exit(self, userdata):
         if self.reachable:
             Logger.loginfo("Finished writting to MongoDB!")

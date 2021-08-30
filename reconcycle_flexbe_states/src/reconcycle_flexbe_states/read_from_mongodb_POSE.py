@@ -38,6 +38,10 @@ class ReadFromMongoPOSE(EventState):
         self.read_data= self.msg_store.query_named(str(self.entry_name), Pose._type)
 
     def execute(self, userdata):
+        pass
+
+            
+    def on_enter(self, userdata):
         pos = Pose()
 
         self.entry_name = userdata.entry_name
@@ -58,10 +62,8 @@ class ReadFromMongoPOSE(EventState):
         userdata.joints_data = position_data
         Logger.loginfo("Reading _id: {} from mongoDB: ... \n {}".format(userdata.entry_name, userdata.joints_data))      
         return 'continue'  
-            
-    def on_enter(self, userdata):
-        Logger.loginfo("Starting read from MongoDB...")
-
+    
+    
     def on_exit(self, userdata):
         if self.reachable:
             Logger.loginfo("Finished reading from MongoDB.")
