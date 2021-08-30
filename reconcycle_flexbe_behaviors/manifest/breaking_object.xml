@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Breaking object">
+
+	<executable package_path="reconcycle_flexbe_behaviors.breaking_object_sm" class="BreakingobjectSM" />
+	<tagstring>mongodb, minjerk, q_hand</tagstring>
+	<author>Rok Pahic</author>
+	<date>Mon Jan 18 2021</date>
+	<description>
+		Testing DMP execution on robot 2
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="numeric" name="max_vel" default="0.3" label="max_vel" hint="Sets the max_vel">
+			<min value="0" />
+			<max value="1" />
+		</param>
+
+		<param type="numeric" name="max_acl" default="0.3" label="max_acl" hint="Sets the max_acl">
+			<min value="0" />
+			<max value="1" />
+		</param>
+
+		<param type="text" name="namespace" default="panda_2" label="namespace" hint="Sets the namespace" />
+
+	</params>
+
+
+</behavior>

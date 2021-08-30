@@ -25,22 +25,22 @@ This repository includes FlexBe states [python files](#python-files)
 Python files represent FlexBe states which are joined together into one behavior.
 
 ## ROS 1  
-- [write_to_mongodb (FlexBe state name: WriteToMongo)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/write_to_mongodb.py)
+- [write_to_mongodb (FlexBe state name: WriteToMongo)](/reconcycle_flexbe_states/src/reconcycle_flexbe_states/write_to_mongodb.py)
 	- input keys: ['entry_data'] = JointState(position)
 	- _id to write to in mongodb (['entry_name']) e.q. entry_name="position1".
 
 
-- [read_from_mongodb (FlexBe state name: ReadFromMongo)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/read_from_mongodb.py)
+- [read_from_mongodb (FlexBe state name: ReadFromMongo)](/reconcycle_flexbe_states/src/reconcycle_flexbe_states/read_from_mongodb.py)
 	- input keys: _id to read from in mongodb (['entry_name']).
 	- output keys: ['joints_data'] = JointState(position)
 
 
-- [call_joint_trap_vel_action_server (FlexBe state name: CallJointTrap)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/call_joint_trap_vel_action_server.py)
+- [call_joint_trap_vel_action_server (FlexBe state name: CallJointTrap)](/reconcycle_flexbe_states/src/reconcycle_flexbe_states/call_joint_trap_vel_action_server.py)
 	- Input keys: ['joints_data'] = JointState(position)
 	- Output keys:[joint_values'] = JointState(position)
 
 
-- [Read_TF_Cart (FlexBe state name: ReadTFCart))](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/Read_TF_Cart.py)
+- [Read_TF_Cart (FlexBe state name: ReadTFCart))](/reconcycle_flexbe_states/src/reconcycle_flexbe_states/Read_TF_Cart.py)
 	- Added target1: lookupTransform()
 	- output_keys = ['t1_data'] = Pose()
 	- input parameters: 
@@ -48,13 +48,13 @@ Python files represent FlexBe states which are joined together into one behavior
     	- source_frame -> string
 	
 
-- [CallAction_TF_Cart (FlexBe state name: CallActionTFCart)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/CallAction_TF_Cart.py)
+- [CallAction_TF_Cart (FlexBe state name: CallActionTFCart)](/reconcycle_flexbe_states/src/reconcycle_flexbe_states/CallAction_TF_Cart.py)
 	- Added call to cart_trap_vel_action_server
 	- input_keys = ['t1_data'] = Pose()
 	- output_keys = ['t1_out'] = Pose()
 	
 
-- [Read_TF_CartLin (FlexBe state name: ReadTFCartLin)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/Read_TF_CartLin.py)
+- [Read_TF_CartLin (FlexBe state name: ReadTFCartLin)](/reconcycle_flexbe_states/src/reconcycle_flexbe_states/Read_TF_CartLin.py)
 	- Added target2: lookupTransform()
 	- output_keys = ['t2_data'] = Pose()
 	- input_keys = ['offset'] -> list [x,y,z]
@@ -64,14 +64,14 @@ Python files represent FlexBe states which are joined together into one behavior
     	- source_frame -> string
 	
 
-- [CallAction_TF_CartLin (FlexBe state name: CallActionTFCartLin)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/CallAction_TF_CartLin.py)
+- [CallAction_TF_CartLin (FlexBe state name: CallActionTFCartLin)](/reconcycle_flexbe_states/src/reconcycle_flexbe_states/CallAction_TF_CartLin.py)
 	- Added call to cart_lin_task_action_server
 	- input_keys = ['t2_data'] = Pose()
 	- output_keys = ['t2_out'] -> result data
 	- input parameters:
 		- namespace -> string
 
-- [Call_joint_min_jerk_action_server (FlexBe state name: CallJointMinJerk)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/Call_joint_min_jerk_action_server.py)
+- [Call_joint_min_jerk_action_server (FlexBe state name: CallJointMinJerk)](/reconcycle_flexbe_states/src/reconcycle_flexbe_states/Call_joint_min_jerk_action_server.py)
 	- Added call to joint_min_jerk_action_server
 	- output_keys = ['minjerk_out'] reply -> []
 	- input_keys = ['goal_joint_pos'] list -> [j1...j7]
@@ -80,7 +80,7 @@ Python files represent FlexBe states which are joined together into one behavior
 		- motion_timestep -> float
 		- namespace -> string
 
-- [toolchanger_rviz (FlexBe state name: SwitchToolsRVIZ)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/toolchanger_rviz.py)
+- [toolchanger_rviz (FlexBe state name: SwitchToolsRVIZ)](/reconcycle_flexbe_states/src/reconcycle_flexbe_states/toolchanger_rviz.py)
 	- Added call to /change_tool_frame/$tool_name
 	- output_keys = None
 	- input_keys = None
@@ -88,7 +88,7 @@ Python files represent FlexBe states which are joined together into one behavior
 		- toolname -> string e.g. "screwdriver"
 		- framename -> string  e.g. "tool_frame_1"
 
-- [adjust_tool_in_rviz (FlexBe state name: AdjustToolPositionAndRotationRVIZ)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/adjust_tool_in_rviz.py)
+- [adjust_tool_in_rviz (FlexBe state name: AdjustToolPositionAndRotationRVIZ)](/reconcycle_flexbe_states/src/reconcycle_flexbe_states/adjust_tool_in_rviz.py)
 	- Added call to /change_transform_matrix/$tool_name 
 	- output_keys = None
 	- input_keys = None
@@ -96,28 +96,28 @@ Python files represent FlexBe states which are joined together into one behavior
 		- toolname -> string  e.g. "screwdirver"
 		- matrix -> string e.g. '[0 0 0 1 0 0]' -> '[x,y,z,rotx,roty,rotz]'
 
-- [load_controller_service_client (FlexBe state name: LoadControllerProxyClient)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/load_controller_service_client.py)
+- [load_controller_service_client (FlexBe state name: LoadControllerProxyClient)](/reconcycle_flexbe_states/src/reconcycle_flexbe_states/load_controller_service_client.py)
 	- output_keys = None
 	- input_keys = None
 	- input parameteres:
 		- desired_controller -> string
 		- robot_name -> string
 
-- [unload_controller_service_client (FlexBe state name: UnloadControllerProxyClient)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/unload_controller_service_client.py)
+- [unload_controller_service_client (FlexBe state name: UnloadControllerProxyClient)](/reconcycle_flexbe_states/src/reconcycle_flexbe_states/unload_controller_service_client.py)
 	- output_keys = None
 	- input_keys = None
 	- input parameteres:
 		- desired_controller -> string
 		- robot_name -> string
 	
-- [active_controller_service_client (FlexBe state name: ActiveControllerProxyClient)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/active_controller_service_client.py)
+- [active_controller_service_client (FlexBe state name: ActiveControllerProxyClient)](/reconcycle_flexbe_states/src/reconcycle_flexbe_states/active_controller_service_client.py)
 	- output_keys = ['active_controller']
 	- input_keys = None
 	- input parameteres:
 		- real_controllers -> string[] array
 		- robot_name -> string
 
-- [switch_controller_service_client (FlexBe state name: SwitchControllerProxyClient)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/switch_controller_service_client.py)
+- [switch_controller_service_client (FlexBe state name: SwitchControllerProxyClient)](/reconcycle_flexbe_states/src/reconcycle_flexbe_states/switch_controller_service_client.py)
 	- output_keys = None
 	- input_keys = None
 	- input parameteres:
@@ -126,7 +126,7 @@ Python files represent FlexBe states which are joined together into one behavior
 		- stop_controller -> string[] array
 		- strictness -> int32
 	
-- [set_load_service_client (FlexBe state name: SetLoadProxyClient)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/set_load_service_client.py)
+- [set_load_service_client (FlexBe state name: SetLoadProxyClient)](/reconcycle_flexbe_states/src/reconcycle_flexbe_states/set_load_service_client.py)
 	- output_keys = None
 	- input_keys = None
 	- input parameters:
@@ -135,35 +135,35 @@ Python files represent FlexBe states which are joined together into one behavior
     	- load_inertia ->    float64[9]  Inertia matrix I(load) in [kg x m^2], column-major.
     	- robot_name   ->    string      "panda_1" or "panda_2"
 
-- [set_KFrame_service_client (FlexBe state name: SetKFrameProxyClient)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/set_KFrame_service_client.py)
+- [set_KFrame_service_client (FlexBe state name: SetKFrameProxyClient)](/reconcycle_flexbe_states/src/reconcycle_flexbe_states/set_KFrame_service_client.py)
 	- output_keys = None
 	- input_keys = None
 	- input parameters:
 		- EE_T_K      ->      float[16]   Vectorized EE-to-K transformation matrix , column-major.
     	- robot_name  ->     string      "panda_1" or "panda_2"
 
-- [set_EEFrame_service_client (FlexBe state name: SetEEFrameProxyClient)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/set_EEFrame_service_client.py)
+- [set_EEFrame_service_client (FlexBe state name: SetEEFrameProxyClient)](/reconcycle_flexbe_states/src/reconcycle_flexbe_states/set_EEFrame_service_client.py)
 	- output_keys = None
 	- input_keys = None
 	- input parameters:
 		- NE_T_EE     ->     float[16]   4x4 matrix -> Vectorized NE-to-EE transformation matrix , column-major.
     	- robot_name  ->     string      "panda_1" or "panda_2"
 
-- [set_joint_impedance_service_client (FlexBe state name: SetJointImpedanceProxyClient)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/set_joint_impedance_service_client.py)
+- [set_joint_impedance_service_client (FlexBe state name: SetJointImpedanceProxyClient)](/reconcycle_flexbe_states/src/reconcycle_flexbe_states/set_joint_impedance_service_client.py)
 	- output_keys = None
 	- input_keys = None
 	- input parameters:
 		- joint_stiffness  ->    float[7]    Joint impedance values for each joint
     	- robot_name       ->    string      "panda_1" or "panda_2"
 
-- [set_cartesian_impedance_service_client (FlexBe state name: SetCartesianImpedanceProxyClient)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/set_cartesian_impedance_service_client.py)
+- [set_cartesian_impedance_service_client (FlexBe state name: SetCartesianImpedanceProxyClient)](/reconcycle_flexbe_states/src/reconcycle_flexbe_states/set_cartesian_impedance_service_client.py)
 	- output_keys = None
 	- input_keys = None
 	- input parameters:
 		- cartesian_stiffness	->	float[6]		[x, y, z, roll, pitch, yaw]
     	- robot_name			->	string      	"panda_1" or "panda_2"
 
-- [set_force_torque_collision_behavior_service_client (FlexBe state name: SetForceTorqueCollisionProxyClient)](/myflexgit_flexbe_states/src/myflexgit_flexbe_states/set_force_torque_collision_behavior_service_client.py)
+- [set_force_torque_collision_behavior_service_client (FlexBe state name: SetForceTorqueCollisionProxyClient)](/reconcycle_flexbe_states/src/reconcycle_flexbe_states/set_force_torque_collision_behavior_service_client.py)
 	- output_keys = None
 	- input_keys = None
 	- input parameters:
@@ -176,7 +176,7 @@ Python files represent FlexBe states which are joined together into one behavior
 # Behaviors example
 Behaviors are modeled as hierarchical state machines where states correspond to active actions and transitions describe the reaction to outcomes.
 
-A [behavior file](/myflexgit_flexbe_behaviors/src/myflexgit_flexbe_behaviors/flexbefull_sm.py) is constructed from [python files](#python-files). The file is run by FlexBe behavior engine.
+A [behavior file](/reconcycle_flexbe_behaviors/src/reconcycle_flexbe_behaviors/flexbefull_sm.py) is constructed from [python files](#python-files). The file is run by FlexBe behavior engine.
 
 More information about FlexBe behavior engine is avaliable [here](https://github.com/team-vigir/flexbe_behavior_engine/blob/master/README.md).
 
@@ -204,4 +204,4 @@ Example commands for a joint_min_jerk_action_client:
 - For simple move panda in Gzweb simulator a test MoveJointMinJerkExample is provided. The behavior is available under Load Behavior in FlexBe app GUI.
 Keep in mind that all the above docker files must be build and run before FlexBE container is created.
 		
-An example of states inside behavior model. ![here](https://github.com/ReconCycle/reconcycle_states/blob/main/myflexgit_flexbe_states/src/myflexgit_flexbe_states/FlexBe%20Statemachine.png).
+An example of states inside behavior model. ![here](https://github.com/ReconCycle/reconcycle_states/blob/main/reconcycle_flexbe_states/src/reconcycle_flexbe_states/FlexBe%20Statemachine.png).

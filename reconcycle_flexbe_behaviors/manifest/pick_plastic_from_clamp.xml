@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Pick plastic from clamp">
+
+	<executable package_path="reconcycle_flexbe_behaviors.pick_plastic_from_clamp_sm" class="PickplasticfromclampSM" />
+	<tagstring>trap, D5.2</tagstring>
+	<author>Rok Pahic</author>
+	<date>Fri Mar 26 2021</date>
+	<description>
+		Pick up plastic from clamp and put it in the bin
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="text" name="clamp_service_name" default="/obr_activate" label="clamp_service_name" hint="Sets the clamp_service_name" />
+
+		<param type="numeric" name="max_acl" default="1" label="max_acl" hint="Sets the max_acl">
+			<min value="0" />
+			<max value="1" />
+		</param>
+
+		<param type="text" name="namespace" default="panda_1" label="namespace" hint="Sets the namespace" />
+
+		<param type="numeric" name="max_vel" default="1" label="max_vel" hint="Sets the max_vel">
+			<min value="0" />
+			<max value="1" />
+		</param>
+
+		<param type="numeric" name="max_vel_contact" default="0.3" label="max_vel_contact" hint="Sets the max_vel_contact">
+			<min value="0" />
+			<max value="1" />
+		</param>
+
+		<param type="numeric" name="max_acl_contact" default="0.2" label="max_acl_contact" hint="Sets the max_acl_contact">
+			<min value="0" />
+			<max value="1" />
+		</param>
+
+	</params>
+
+
+</behavior>

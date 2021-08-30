@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="D5_2_kader1">
+
+	<executable package_path="reconcycle_flexbe_behaviors.d5_2_kader1_sm" class="D5_2_kader1SM" />
+	<tagstring>mongodb, minjerk, q_hand</tagstring>
+	<author>Rok Pahic</author>
+	<date>Fri Mar 26 2021</date>
+	<description>
+		Video for D5_2 until pcb turn
+	</description>
+
+
+	<!-- Contained Behaviors -->
+	<contains name="Putt object in clamp" />
+	<contains name="Change tool on robot" />
+	<contains name="Pick plastic from clamp" />
+	<contains name="Breaking object" />
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="text" name="tray_service_name" default="/clamping_tray" label="tray_service_name" hint="Sets the tray_service_name" />
+
+	</params>
+
+
+</behavior>
