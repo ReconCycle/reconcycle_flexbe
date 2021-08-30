@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<behavior name="EMO demo">
+<behavior name="EMO demo 2">
 
-	<executable package_path="reconcycle_flexbe_behaviors.emo_demo_sm" class="EMOdemoSM" />
+	<executable package_path="reconcycle_flexbe_behaviors.emo_demo_2_sm" class="EMOdemo2SM" />
 	<tagstring>qb_hand, vise, cartesian_move, reconcycle</tagstring>
 	<author>Rok Pahic...</author>
 	<date>Wed Jul 14 2021</date>
@@ -22,14 +22,5 @@ Ponovi
 	<!-- Contained Behaviors -->
 
 	<!-- Available Parameters -->
-	<params>
-
-		<param type="numeric" name="test" default="1" label="test" hint="Sets the test">
-			<min value="0" />
-			<max value="1" />
-		</param>
-
-	</params>
-
 
 </behavior>
