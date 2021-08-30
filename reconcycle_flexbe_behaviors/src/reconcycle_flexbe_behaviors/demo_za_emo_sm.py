@@ -22,25 +22,32 @@ from reconcycle_flexbe_states.write_to_mongodb_pose import WriteToMongoPOSE
 
 '''
 Created on Wed Jul 14 2021
-@author: Rok Pahic...
+@author: Rok Pahic, Boris Kuster, Mihael Simonic, Matija Mavsar
 '''
-class EMOdemoSM(Behavior):
+class DemozaEMOSM(Behavior):
 	'''
-	Demo za EMO:
-Preberi pozicijo HCA iz kamere
-Poberi z Qb hand
-Daj v primez
-Stisni in zavrti tja in nazaj
-Spusti primez 
-Poberi z robotm
-Odlozi nazaj na zacetek
-Ponovi
+	Potrebna oprema:
+
+bambus-1.local: roslaunch controllers 
+raspi-panda1-block.local: docker
+raspi-clamp-block.local: docker
+
+
+Opis:
+- Preberi pozicijo HCA iz kamere
+- Poberi z Qb hand
+- Daj v primez
+- Stisni in zavrti tja in nazaj
+- Spusti primez 
+- Poberi z robotm
+- Odlozi nazaj na zacetek
+- Ponovi
 	'''
 
 
 	def __init__(self):
-		super(EMOdemoSM, self).__init__()
-		self.name = 'EMO demo'
+		super(DemozaEMOSM, self).__init__()
+		self.name = 'Demo za EMO'
 
 		# parameters of this behavior
 		self.add_parameter('test', 1)

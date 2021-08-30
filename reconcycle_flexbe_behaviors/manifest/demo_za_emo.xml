@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Demo za EMO">
+
+	<executable package_path="reconcycle_flexbe_behaviors.demo_za_emo_sm" class="DemozaEMOSM" />
+	<tagstring>qb_hand, vise, cartesian_move, reconcycle</tagstring>
+	<author>Rok Pahic, Boris Kuster, Mihael Simonic, Matija Mavsar</author>
+	<date>Wed Jul 14 2021</date>
+	<description>
+		Potrebna oprema:
+
+bambus-1.local: roslaunch controllers 
+raspi-panda1-block.local: docker
+raspi-clamp-block.local: docker
+
+
+Opis:
+- Preberi pozicijo HCA iz kamere
+- Poberi z Qb hand
+- Daj v primez
+- Stisni in zavrti tja in nazaj
+- Spusti primez 
+- Poberi z robotm
+- Odlozi nazaj na zacetek
+- Ponovi
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="numeric" name="test" default="1" label="test" hint="Sets the test">
+			<min value="0" />
+			<max value="1" />
+		</param>
+
+	</params>
+
+
+</behavior>
