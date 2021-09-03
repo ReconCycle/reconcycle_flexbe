@@ -29,14 +29,5 @@ Opis:
 	<!-- Contained Behaviors -->
 
 	<!-- Available Parameters -->
-	<params>
-
-		<param type="numeric" name="test" default="1" label="test" hint="Sets the test">
-			<min value="0" />
-			<max value="1" />
-		</param>
-
-	</params>
-
 
 </behavior>

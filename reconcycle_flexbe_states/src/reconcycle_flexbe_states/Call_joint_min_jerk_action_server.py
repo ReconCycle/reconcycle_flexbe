@@ -23,12 +23,16 @@ class CallJointMinJerk(EventState):
     '''
 
     def __init__(self, motion_duration, motion_timestep, namespace=''):
-        super(CallJointMinJerk, self).__init__(outcomes = ['continue', 'failed'], input_keys = ['goal_joint_pos'], output_keys = ['minjerk_out'])
+        super(CallJointMinJerk, self).__init__(outcomes = ['continue', 'failed'], 
+                                               input_keys = ['goal_joint_pos'], 
+                                               output_keys = ['minjerk_out'])
 
         # actionlib client @joint_min_jerk_action_server
+        Logger.loginfo("Joint min jerk initialization...")
 
-        self._server_namespace=namespace
-        self._client = actionlib.SimpleActionClient(self._server_namespace+'/joint_min_jerk_action_server', robot_module_msgs.msg.JointMinJerkAction)
+        self._server_namespace = namespace
+        self._client = actionlib.SimpleActionClient(self._server_namespace + 
+            '/joint_min_jerk_action_server', robot_module_msgs.msg.JointMinJerkAction)
 
         #self._client = ProxyActionClient({self._topic: robot_module_msgs.msg.JointMinJerkAction}) # pass required clients as dict (topic: type)
         # JointMinJerkAction
@@ -52,7 +56,7 @@ class CallJointMinJerk(EventState):
     def on_enter(self, userdata):
         # input [float, float, ...] of 7 joints is used for userdata.goal_joint_pos.
         goal = robot_module_msgs.msg.JointMinJerkGoal(userdata.goal_joint_pos, self._duration, self._timestep)
-        Logger.loginfo("Starting sending goal...")
+        Logger.loginfo("Starting sending goal {}".format(goal))
 
         try:
             Logger.loginfo("Goal sent: {}".format(str(userdata.goal_joint_pos)))

@@ -27,7 +27,8 @@ class ReadFromMongo(EventState):
 
     #-- calculation  function        The function that performs [...]
     def __init__(self):      
-        super(ReadFromMongo, self).__init__(outcomes = ['continue', 'failed'], input_keys = ['entry_name'], output_keys = ['joints_data'])
+        super(ReadFromMongo, self).__init__(outcomes = ['continue', 'failed'], 
+                                            input_keys = ['entry_name_array'], output_keys = ['joints_data'])
         self.reachable = True
 
         self.msg_store = MessageStoreProxy()
@@ -44,20 +45,25 @@ class ReadFromMongo(EventState):
         Logger.loginfo("Starting read from MongoDB...")
         pos = JointState()
 
-        self.entry_name = userdata.entry_name
-        try:
-            #data_from_db = self.msg_store.query_named(str(userdata.entry_name), JointState._type)
-            #threading.Thread(target=self.read_from_mongodb).start()
-            self.read_from_mongodb()
+        joint_data_array = []
 
-            data_from_db = self.read_data
-            position_data = list(data_from_db[0].position)
-            Logger.loginfo("Position data read from DB: \n {}".format(position_data))      
+        for entry in userdata.entry_name_array:
+            self.entry_name = entry
+            try:
+                #data_from_db = self.msg_store.query_named(str(userdata.entry_name), JointState._type)
+                #threading.Thread(target=self.read_from_mongodb).start()
+                self.read_from_mongodb()
 
-        except rospy.ServiceException as e:
-            Logger.loginfo("MongoDB is not reachable...")
-            self.reachable = False
-            return 'failed'
+                data_from_db = self.read_data
+                position_data = list(data_from_db[0].position)
+                Logger.loginfo("Position data read from DB: \n {}".format(position_data))      
+
+            except rospy.ServiceException as e:
+                Logger.loginfo("MongoDB is not reachable...")
+                self.reachable = False
+                return 'failed'
+            
+            joint_data_array.append(position_data)
 
         userdata.joints_data = position_data
         Logger.loginfo("Reading _id: {} from mongoDB: ... \n {}".format(userdata.entry_name, userdata.joints_data))      
@@ -73,7 +79,7 @@ if __name__ == '__main__':
     rospy.init_node('test_node')
 
     class UserData():
-        entry_name = "jtest"
+        entry_name_array = ["test_pose_1", "test_pose_2"]
     test_state = ReadFromMongo()
 
     data = UserData()
