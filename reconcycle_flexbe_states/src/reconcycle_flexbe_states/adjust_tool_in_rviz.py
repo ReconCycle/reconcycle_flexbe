@@ -10,10 +10,11 @@ class AdjustToolPositionAndRotationRVIZ(EventState):
 
     '''
     Adjust tool postition and rotation [x,y,z,rotx,roty,rotz] in /change_transform_matrix/$(toolname)
-    Example: rosservice call /change_transform_matrix/screwdriver "matrix: [0,0,0,1,0,0]"  
+    x,y,z are in meters, rotx, roty and rotz in degrees
+    Example: rosservice call /change_transform_matrix/screwdriver "matrix: [0,0,0,90,0,0]"  
     
     -- toolname     string  tool name (screwdriver, vacuumgripper, parallelgripper)
-    -- matrix       string  attach to robot (e.g. 'panda_2/panda_link8')
+    -- matrix       string  matrix input [x(m),y(m),z(m),rotx(deg), roty(deg), rotz(deg)]
     <= continue             Written successfully
     <= failed               Failed
     '''
