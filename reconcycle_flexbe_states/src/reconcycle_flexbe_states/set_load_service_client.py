@@ -43,9 +43,8 @@ class SetLoadProxyClient(EventState):
 
     
     def on_enter(self, userdata):
-        Logger.loginfo("Started service client Set Load...")        
+        Logger.loginfo("Started service client Set Load...")
 
-    def execute(self, userdata):
         request = SetLoadRequest()
         request.mass = self.mass
         request.F_x_center_laod = self.F_x_center_load
@@ -66,7 +65,11 @@ class SetLoadProxyClient(EventState):
 
         except (CommandException, NetworkException) as e:
             Logger.loginfo(e)
-            return 'failed'
+            return 'failed'        
+
+    def execute(self, userdata):
+        return 'continue'
+        
 
     def on_exit(self, userdata):
         Logger.loginfo("Finished service client!")

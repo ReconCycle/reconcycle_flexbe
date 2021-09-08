@@ -44,9 +44,8 @@ class SetForceTorqueCollisionProxyClient(EventState):
 
     
     def on_enter(self, userdata):
-        Logger.loginfo("Started service client Set ForceTorqueCollisionBehavior...")        
+        Logger.loginfo("Started service client Set ForceTorqueCollisionBehavior...")
 
-    def execute(self, userdata):
         request = SetForceTorqueCollisionBehaviorRequest()
         request.lower_torque_thresholds_nominal = self.lower_torque_thresholds_nominal
         request.upper_torque_thresholds_nominal = self.upper_torque_thresholds_nominal
@@ -68,7 +67,11 @@ class SetForceTorqueCollisionProxyClient(EventState):
 
         except (CommandException, NetworkException) as e:
             Logger.loginfo(e)
-            return 'failed'
+            return 'failed'        
+
+    def execute(self, userdata):
+        return 'continue'
+        
 
     def on_exit(self, userdata):
         Logger.loginfo("Finished service client!")

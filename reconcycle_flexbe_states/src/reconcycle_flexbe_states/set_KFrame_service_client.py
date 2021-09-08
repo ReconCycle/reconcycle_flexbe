@@ -40,7 +40,6 @@ class SetKFrameProxyClient(EventState):
     def on_enter(self, userdata):
         Logger.loginfo("Started service client Set KFrame...")
 
-    def execute(self, userdata):
         request = SetKFrameRequest()
         request.EE_T_K = self.frame
 
@@ -60,6 +59,9 @@ class SetKFrameProxyClient(EventState):
         except (CommandException, NetworkException) as e:
             Logger.loginfo(e)
             return 'failed'
+
+    def execute(self, userdata):
+        return 'continue'
 
     def on_exit(self, userdata):
         Logger.loginfo("Finished service client!")

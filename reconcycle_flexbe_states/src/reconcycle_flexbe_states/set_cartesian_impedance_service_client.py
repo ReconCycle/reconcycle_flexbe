@@ -40,7 +40,6 @@ class SetCartesianImpedanceProxyClient(EventState):
     def on_enter(self, userdata):
         Logger.loginfo("Started service client Set CartesianImpedance...")
 
-    def execute(self, userdata):
         request = SetCartesianImpedanceRequest()
         request.cartesian_stiffness = self.stiffness
 
@@ -60,6 +59,9 @@ class SetCartesianImpedanceProxyClient(EventState):
         except (CommandException, NetworkException) as e:
             Logger.loginfo(e)
             return 'failed'
+
+    def execute(self, userdata):
+        return 'continue'
 
     def on_exit(self, userdata):
         Logger.loginfo("Finished service client!")

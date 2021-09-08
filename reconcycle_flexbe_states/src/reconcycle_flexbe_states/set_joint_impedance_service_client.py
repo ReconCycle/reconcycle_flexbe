@@ -38,9 +38,8 @@ class SetJointImpedanceProxyClient(EventState):
 
     
     def on_enter(self, userdata):
-        Logger.loginfo("Started service client Set JointImpedance...")        
+        Logger.loginfo("Started service client Set JointImpedance...")
 
-    def execute(self, userdata):
         request = SetJointImpedanceRequest()
         request.joint_stiffness = self.stiffness
 
@@ -59,7 +58,10 @@ class SetJointImpedanceProxyClient(EventState):
 
         except (CommandException, NetworkException) as e:
             Logger.loginfo(e)
-            return 'failed'
+            return 'failed'        
+
+    def execute(self, userdata):
+        return 'continue'
 
     def on_exit(self, userdata):
         Logger.loginfo("Finished service client!")

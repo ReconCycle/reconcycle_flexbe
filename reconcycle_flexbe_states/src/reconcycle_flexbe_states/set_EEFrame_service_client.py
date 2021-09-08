@@ -38,9 +38,8 @@ class SetEEFrameProxyClient(EventState):
 
     
     def on_enter(self, userdata):
-        Logger.loginfo("Started service client Set EEFrame...")        
+        Logger.loginfo("Started service client Set EEFrame...")
 
-    def execute(self, userdata):
         request = SetEEFrameRequest()
         request.NE_T_EE = self.frame
 
@@ -59,7 +58,10 @@ class SetEEFrameProxyClient(EventState):
 
         except (CommandException, NetworkException) as e:
             Logger.loginfo(e)
-            return 'failed'
+            return 'failed'        
+
+    def execute(self, userdata):
+        return 'continue'
 
     def on_exit(self, userdata):
         Logger.loginfo("Finished service client!")
