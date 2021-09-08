@@ -30,9 +30,6 @@ class FrankaErrorRecoveryActionProxy(EventState):
 
     
     def on_enter(self, userdata):
-        return 'continue'
-
-    def execute(self, userdata):
         #-----------------------------------------------------------------------------------------------------------
         goal = ErrorRecoveryActionGoal()
 
@@ -54,6 +51,9 @@ class FrankaErrorRecoveryActionProxy(EventState):
         except Exception as e:
             Logger.logwarn("Failed to send a goal: {}".format(str(e)))           
             return 'failed'
+
+    def execute(self, userdata):
+        return 'continue'        
 
     def on_exit(self, userdata):
         if not self.recovery_client.has_result(self.topic):
