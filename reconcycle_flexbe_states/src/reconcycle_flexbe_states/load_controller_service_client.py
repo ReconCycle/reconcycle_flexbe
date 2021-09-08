@@ -33,9 +33,8 @@ class LoadControllerProxyClient(EventState):
 
     
     def on_enter(self, userdata):
-        Logger.loginfo("Started service client...")        
+        Logger.loginfo("Started service client...")
 
-    def execute(self, userdata):
         request = LoadControllerRequest()
         request.name = self.controller
         try:
@@ -53,7 +52,11 @@ class LoadControllerProxyClient(EventState):
 
         except Exception as e:
             Logger.loginfo(e)
-            return 'failed'
+            return 'failed'        
+
+    def execute(self, userdata):
+        return 'continue'
+        
 
     def on_exit(self, userdata):
         Logger.loginfo("Finished service client!")

@@ -33,9 +33,8 @@ class UnloadControllerProxyClient(EventState):
 
     
     def on_enter(self, userdata):
-        Logger.loginfo("Started service client unload controller...")        
+        Logger.loginfo("Started service client unload controller...")
 
-    def execute(self, userdata):
         request = UnloadControllerRequest()
         request.name = self.controller
         try:
@@ -54,7 +53,11 @@ class UnloadControllerProxyClient(EventState):
         except Exception as e:
             Logger.loginfo(e)
             return 'failed'
+        
 
+    def execute(self, userdata):
+        return 'continue'
+        
     def on_exit(self, userdata):
         Logger.loginfo("Finished service client!")
         return 'continue'

@@ -37,9 +37,8 @@ class SwitchControllerProxyClient(EventState):
 
     
     def on_enter(self, userdata):
-        Logger.loginfo("Started service client switch controller...")  
+        Logger.loginfo("Started service client switch controller...")
 
-    def execute(self, userdata):
         request = SwitchControllerRequest()
         request.start_controllers = self.start_controller
         request.stop_controllers = self.stop_controller
@@ -61,7 +60,11 @@ class SwitchControllerProxyClient(EventState):
 
         #except Exception as e:
         #    Logger.loginfo(e)
-        #    return 'failed'
+        #    return 'failed'  
+
+    def execute(self, userdata):
+        return 'continue'
+        
 
     def on_exit(self, userdata):
         Logger.loginfo("Finished service client!")

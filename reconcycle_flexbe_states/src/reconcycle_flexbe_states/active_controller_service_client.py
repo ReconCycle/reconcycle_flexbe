@@ -38,9 +38,8 @@ class ActiveControllerProxyClient(EventState):
 
     
     def on_enter(self, userdata):
-        Logger.loginfo("Started service client active controller...")        
+        Logger.loginfo("Started service client active controller...")
 
-    def execute(self, userdata):
         request = ListControllersRequest()
         try:
             if self.client_proxy.is_available(self.topic):
@@ -70,6 +69,9 @@ class ActiveControllerProxyClient(EventState):
         except Exception as e:
             Logger.loginfo(e)
             return 'failed'
+        
+    def execute(self, userdata):
+        return 'continue'
 
     def on_exit(self, userdata):
         Logger.loginfo("Finished service client!")
