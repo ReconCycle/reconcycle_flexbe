@@ -26,7 +26,7 @@ class CallJointTrap(EventState):
     <= failed                       Failed
     '''
 
-    def __init__(self,max_vel,max_acl,namespace=''):
+    def __init__(self,max_vel, max_acl, namespace=''):
         super(CallJointTrap, self).__init__(outcomes = ['continue', 'failed'], 
                                             input_keys = ['joints_data'], 
                                             output_keys = ['joint_values'])

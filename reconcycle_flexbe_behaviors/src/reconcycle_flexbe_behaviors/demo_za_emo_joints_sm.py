@@ -10,13 +10,9 @@
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
 from flexbe_states.wait_state import WaitState
 from reconcycle_flexbe_states.CallAction_JointTrapVel_mult import CallJointTrap
-from reconcycle_flexbe_states.CallAction_TF_CartLin import CallActionTFCartLin
-from reconcycle_flexbe_states.ErrorRecoveryProxy import FrankaErrorRecoveryActionProxy
 from reconcycle_flexbe_states.MoveSoftHand import MoveSoftHand
 from reconcycle_flexbe_states.avtivate_raspi_output import ActivateRaspiDigitalOuput
-from reconcycle_flexbe_states.read_from_mongodb_POSE import ReadFromMongoPOSE
 from reconcycle_flexbe_states.read_from_mongodb_mult import ReadFromMongo
-from reconcycle_flexbe_states.switch_controller_service_client import SwitchControllerProxyClient
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
 
@@ -68,18 +64,16 @@ Opis:
 	def create(self):
 		# x:459 y:549, x:130 y:365
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
-		_state_machine.userdata.grab_pos = [0.6]
+		_state_machine.userdata.grab_pos = [0.7]
 		_state_machine.userdata.true = True
 		_state_machine.userdata.false = False
 		_state_machine.userdata.release_pos = [0.2]
-		_state_machine.userdata.init_pose = "emo/init_pose"
-		_state_machine.userdata.pickup_pose = "emo/pickup_pose"
-		_state_machine.userdata.trans_pickup_pose = "emo/trans_pickup_pose"
+		_state_machine.userdata.init_pose = "emo/j_init_pose"
+		_state_machine.userdata.pickup_pose = "emo/j_pickup_pose"
 		_state_machine.userdata.slider_pose_above = "emo/j_slider_pose_above"
 		_state_machine.userdata.slider_pose_near = "emo/j_slider_pose_near"
 		_state_machine.userdata.holder_pickup_pose = "emo/j_holder_pickup_pose"
 		_state_machine.userdata.holder_up_pose = "emo/j_holder_up_pose"
-		_state_machine.userdata.j_pickup_pose = "emo/j_pickup_pose"
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
@@ -92,31 +86,31 @@ Opis:
 		with _sm_pickup_from_holder_0:
 			# x:99 y:42
 			OperatableStateMachine.add('Read holder pickup',
-										ReadFromMongoPOSE(),
+										ReadFromMongo(),
 										transitions={'continue': 'Read holder up', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'entry_name': 'holder_pickup_pose', 'joints_data': 'tf_holder_pickup'})
+										remapping={'entry_name_array': 'holder_pickup_pose', 'joints_data': 'joints_data'})
 
 			# x:297 y:273
 			OperatableStateMachine.add('Move holder up',
-										CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=None),
+										CallJointTrap(max_vel=0.5, max_acl=0.5, namespace="panda_1"),
 										transitions={'continue': 'finished', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'t2_data': 'tf_holder_up', 't2_out': 't2_out'})
+										remapping={'joints_data': 'joints_data', 'joint_values': 'joint_values'})
 
 			# x:302 y:40
 			OperatableStateMachine.add('Read holder up',
-										ReadFromMongoPOSE(),
+										ReadFromMongo(),
 										transitions={'continue': 'Move holder pickup', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'entry_name': 'holder_up_pose', 'joints_data': 'tf_holder_up'})
+										remapping={'entry_name_array': 'holder_up_pose', 'joints_data': 'joints_data'})
 
 			# x:298 y:158
 			OperatableStateMachine.add('Move holder pickup',
-										CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=None),
+										CallJointTrap(max_vel=0.5, max_acl=0.5, namespace="panda_1"),
 										transitions={'continue': 'Move holder up', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'t2_data': 'tf_holder_pickup', 't2_out': 't2_out'})
+										remapping={'joints_data': 'joints_data', 'joint_values': 'joint_values'})
 
 
 		# x:30 y:365, x:181 y:175
@@ -125,24 +119,24 @@ Opis:
 		with _sm_move_to_slider_and_drop_1:
 			# x:129 y:39
 			OperatableStateMachine.add('Read above slider pose',
-										ReadFromMongoPOSE(),
+										ReadFromMongo(),
 										transitions={'continue': 'Read near slider pose', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'entry_name': 'slider_pose_above', 'joints_data': 'tf_slider_pose_above'})
+										remapping={'entry_name_array': 'slider_pose_above', 'joints_data': 'tf_slider_pose_above'})
 
 			# x:344 y:235
 			OperatableStateMachine.add('Move near slider',
-										CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=None),
+										CallJointTrap(max_vel=0.5, max_acl=0.5, namespace="panda_1"),
 										transitions={'continue': 'Release object', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'t2_data': 'tf_slider_pose_near', 't2_out': 'minjerk_out'})
+										remapping={'joints_data': 'tf_slider_pose_near', 'joint_values': 'minjerk_out'})
 
 			# x:339 y:27
 			OperatableStateMachine.add('Read near slider pose',
-										ReadFromMongoPOSE(),
+										ReadFromMongo(),
 										transitions={'continue': 'Move above slider', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'entry_name': 'slider_pose_near', 'joints_data': 'tf_slider_pose_near'})
+										remapping={'entry_name_array': 'slider_pose_near', 'joints_data': 'tf_slider_pose_near'})
 
 			# x:342 y:338
 			OperatableStateMachine.add('Release object',
@@ -153,100 +147,60 @@ Opis:
 
 			# x:342 y:147
 			OperatableStateMachine.add('Move above slider',
-										CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=None),
+										CallJointTrap(max_vel=0.5, max_acl=0.5, namespace="panda_1"),
 										transitions={'continue': 'Move near slider', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'t2_data': 'tf_slider_pose_above', 't2_out': 'minjerk_out'})
+										remapping={'joints_data': 'tf_slider_pose_above', 'joint_values': 'minjerk_out'})
 
 
-		# x:214 y:382, x:346 y:144
-		_sm_move_to_object_2 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['init_pose', 'trans_pickup_pose', 'pickup_pose', 'j_pickup_pose'])
+		# x:30 y:365, x:130 y:365
+		_sm_move_to_object_2 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['init_pose', 'pickup_pose'])
 
 		with _sm_move_to_object_2:
-			# x:77 y:30
+			# x:206 y:24
 			OperatableStateMachine.add('Read init pose',
-										ReadFromMongoPOSE(),
-										transitions={'continue': 'Move init pose', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'entry_name': 'init_pose', 'joints_data': 'tf_init_pose'})
-
-			# x:302 y:27
-			OperatableStateMachine.add('Move init pose',
-										CallActionTFCartLin(namespace="/panda_1", exe_time=3, offset=0),
-										transitions={'continue': 'Read joint pickup', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'t2_data': 'tf_init_pose', 't2_out': 'minjerk_out'})
-
-			# x:521 y:141
-			OperatableStateMachine.add('Move joint pickup above',
-										CallJointTrap(max_vel=0.5, max_acl=0.5, namespace="panda_1"),
-										transitions={'continue': 'Switch to cartesian', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'joints_data': 'tf_j_pickup_pose', 'joint_values': 'joint_values'})
-
-			# x:717 y:143
-			OperatableStateMachine.add('Move pickup above pose',
-										CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=[0,0,0.2,0,0,0,1]),
-										transitions={'continue': 'Move pickup pose', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'t2_data': 'tf_pickup_pose', 't2_out': 'minjerk_out'})
-
-			# x:519 y:359
-			OperatableStateMachine.add('Move pickup pose',
-										CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=[0,0,0.15,0,0,0,1]),
-										transitions={'continue': 'Move back pickup', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'t2_data': 'tf_pickup_pose', 't2_out': 't2_out'})
-
-			# x:524 y:27
-			OperatableStateMachine.add('Read joint pickup',
 										ReadFromMongo(),
 										transitions={'continue': 'Read pickup pose', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'entry_name_array': 'j_pickup_pose', 'joints_data': 'tf_j_pickup_pose'})
+										remapping={'entry_name_array': 'init_pose', 'joints_data': 'tf_init_pose'})
 
-			# x:720 y:37
-			OperatableStateMachine.add('Read pickup pose',
-										ReadFromMongoPOSE(),
-										transitions={'continue': 'Move joint pickup above', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'entry_name': 'pickup_pose', 'joints_data': 'tf_pickup_pose'})
-
-			# x:514 y:258
-			OperatableStateMachine.add('Switch to cartesian',
-										SwitchControllerProxyClient(robot_name="panda_1", start_controller="cartesian_impedance_controller", stop_controller="joint_impedance_controller", strictness=2),
-										transitions={'continue': 'Move pickup pose', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
-
-			# x:515 y:461
-			OperatableStateMachine.add('Move back pickup',
-										CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=[0,0,0.2,0,0,0,1]),
+			# x:453 y:196
+			OperatableStateMachine.add('Move pickup pose',
+										CallJointTrap(max_vel=0.5, max_acl=0.5, namespace="panda_1"),
 										transitions={'continue': 'finished', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'t2_data': 'tf_pickup_pose', 't2_out': 't2_out'})
+										remapping={'joints_data': 'tf_pickup_pose', 'joint_values': 'minjerk_out'})
+
+			# x:455 y:27
+			OperatableStateMachine.add('Read pickup pose',
+										ReadFromMongo(),
+										transitions={'continue': 'Move init pose', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'entry_name_array': 'pickup_pose', 'joints_data': 'tf_pickup_pose'})
+
+			# x:456 y:116
+			OperatableStateMachine.add('Move init pose',
+										CallJointTrap(max_vel=0.5, max_acl=0.5, namespace="panda_1"),
+										transitions={'continue': 'Move pickup pose', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'joints_data': 'tf_init_pose', 'joint_values': 'minjerk_out'})
 
 
-		# x:814 y:59, x:278 y:232
+		# x:30 y:365, x:130 y:365
 		_sm_init_cell_3 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['true', 'open_pos'])
 
 		with _sm_init_cell_3:
-			# x:105 y:54
+			# x:126 y:133
 			OperatableStateMachine.add('Open pneumatic block',
 										ActivateRaspiDigitalOuput(service_name="/obr_block2_ON"),
 										transitions={'continue': 'Open hand', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Off},
 										remapping={'value': 'true', 'success': 'success'})
 
-			# x:526 y:52
-			OperatableStateMachine.add('error_recovery',
-										FrankaErrorRecoveryActionProxy(robot_name="/panda_1"),
-										transitions={'continue': 'finished', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
-
-			# x:319 y:52
+			# x:365 y:128
 			OperatableStateMachine.add('Open hand',
 										MoveSoftHand(motion_duration=2, motion_timestep=0.1),
-										transitions={'continue': 'error_recovery', 'failed': 'failed'},
+										transitions={'continue': 'finished', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'goal_hand_pos': 'open_pos', 'success': 'success'})
 
@@ -304,7 +258,7 @@ Opis:
 
 
 		with _state_machine:
-			# x:195 y:20
+			# x:149 y:29
 			OperatableStateMachine.add('Init cell',
 										_sm_init_cell_3,
 										transitions={'finished': 'Move to object', 'failed': 'failed'},
@@ -318,12 +272,12 @@ Opis:
 										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Off},
 										remapping={'goal_hand_pos': 'grab_pos', 'success': 'success'})
 
-			# x:656 y:20
+			# x:424 y:36
 			OperatableStateMachine.add('Move to object',
 										_sm_move_to_object_2,
-										transitions={'finished': 'finished', 'failed': 'failed'},
+										transitions={'finished': 'Grab object', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-										remapping={'init_pose': 'init_pose', 'trans_pickup_pose': 'trans_pickup_pose', 'pickup_pose': 'pickup_pose', 'j_pickup_pose': 'j_pickup_pose'})
+										remapping={'init_pose': 'init_pose', 'pickup_pose': 'pickup_pose'})
 
 			# x:411 y:229
 			OperatableStateMachine.add('Move to slider and drop',

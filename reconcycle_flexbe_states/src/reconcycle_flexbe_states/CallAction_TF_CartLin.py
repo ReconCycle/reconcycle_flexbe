@@ -7,6 +7,8 @@ from flexbe_core import EventState, Logger
 import robot_module_msgs.msg
 import geometry_msgs.msg
 import actionlib
+import tf.transformations as tft
+import numpy as np
 
 
 class CallActionTFCartLin(EventState):
@@ -23,14 +25,17 @@ class CallActionTFCartLin(EventState):
     <= failed                           Failed
     '''
 
-    def __init__(self, namespace,exe_time):
+    def __init__(self, namespace, exe_time, offset=0):
         super(CallActionTFCartLin, self).__init__(outcomes = ['continue', 'failed'], input_keys = ['t2_data'], output_keys = ['t2_out'])
         
         
         rospy.loginfo('__init__ callback happened.')   
         
-        self.exe_time=exe_time
+        self.exe_time = exe_time
         self.ns = namespace
+        if offset == 0:
+            offset = [0, 0, 0, 0, 0, 0, 1]
+        self.offset = np.array(offset)
         # Declaring topic and client
         self._topic = self.ns + '/cartesian_impedance_controller/cart_lin_as'
         self._client = actionlib.SimpleActionClient(self._topic, robot_module_msgs.msg.CartLinTaskAction)
@@ -41,18 +46,29 @@ class CallActionTFCartLin(EventState):
         Logger.loginfo("Started sending goal...")
         # create goal
 
+        position = np.array([userdata.t2_data[0].position.x,
+                             userdata.t2_data[0].position.y,
+                             userdata.t2_data[0].position.z])
+        orientation = np.array([userdata.t2_data[0].orientation.x,
+                                userdata.t2_data[0].orientation.y,
+                                userdata.t2_data[0].orientation.z,
+                                userdata.t2_data[0].orientation.w])
+        # TODO: Implement offset calculation for position and orientation!
+        position = position + self.offset[0:3]
+        # orientation *= self.offset[3:]
+
         #goal = robot_module_msgs.msg.CartLinTaskActionGoal() 
         #goal.goal.target_pose=[userdata.t2_data]
         #goal.goal.desired_travel_time=self.exe_time 
         goal = robot_module_msgs.msg.CartLinTaskGoal() 
         pose = geometry_msgs.msg.Pose()
-        pose.position.x = userdata.t2_data[0].position.x
-        pose.position.y = userdata.t2_data[0].position.y
-        pose.position.z = userdata.t2_data[0].position.z
-        pose.orientation.x = userdata.t2_data[0].orientation.x
-        pose.orientation.y = userdata.t2_data[0].orientation.y
-        pose.orientation.z = userdata.t2_data[0].orientation.z
-        pose.orientation.w = userdata.t2_data[0].orientation.w
+        pose.position.x = position[0]
+        pose.position.y = position[1]
+        pose.position.z = position[2]
+        pose.orientation.x = orientation[0]
+        pose.orientation.y = orientation[1]
+        pose.orientation.z = orientation[2]
+        pose.orientation.w = orientation[3]
         
         goal.target_pose=[pose]
         
