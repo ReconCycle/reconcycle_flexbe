@@ -12,7 +12,7 @@ from robot_module_msgs.msg import JointTrapVelAction,JointTrapVelGoal
 
 
 
-class CallJointTrap(EventState):
+class CallJointTrapMult(EventState):
 
     '''
     Calls JointTrapVelAction server @ 'joint_trap_vel_action_server' topic
@@ -27,7 +27,7 @@ class CallJointTrap(EventState):
     '''
 
     def __init__(self,max_vel,max_acl,namespace=''):
-        super(CallJointTrap, self).__init__(outcomes = ['continue', 'failed'], input_keys = ['joints_data'], output_keys = ['joint_values'])
+        super(CallJointTrapMult, self).__init__(outcomes = ['continue', 'failed'], input_keys = ['joints_data'], output_keys = ['joint_values'])
 
         # replace 'panda_2/joint_trap_vel_action_server' from dummies with 'joint_trap_vel_action_server'
         self._namespace=namespace
