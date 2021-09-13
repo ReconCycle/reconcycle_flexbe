@@ -57,6 +57,10 @@ class CallActionTFCartLin(EventState):
         position = position + self.offset[0:3]
         orientation = tft.quaternion_multiply(orientation, self.offset[3:])
 
+        # M = tft.compose_matrix(translate=position, angles=tft.euler_from_quaternion(orientation))
+        # R = tft.compose_matrix(translate=[0.2,0.0])
+      
+
         #goal = robot_module_msgs.msg.CartLinTaskActionGoal() 
         #goal.goal.target_pose=[userdata.t2_data]
         #goal.goal.desired_travel_time=self.exe_time 

@@ -9,32 +9,48 @@ import numpy as np
 import tf
 import rospy
 
-class SetCartesianComplianceProxyClient(EventState):
+class SetReconcycleCartesianCompliance(EventState):
 
     '''
-    Sets the compliance parameters of the IJS cartesian impedance controller.
+    Sets the compliance parameters of the ReconCycle cartesian impedance controller.
     
     Parameters:   
     -- robot_name    string           Namespace of the robot 
-    
-    Run-time userdata:
-    ># Kp            float[3]         stiffness for positional d.o.f
-    ># Kr            float[3]         stiffness for rotational d.o.f
+    -- Kp            float[3]         stiffness for positional d.o.f
+    -- Kr            float[3]         stiffness for rotational d.o.f
+    -- R
+    -- D
+    -- hold_pose
     
     Outcomes:
     <= continue
     <= failed
+    
     '''
     
-    def __init__(self, robot_name):
-        super(SetCartesianComplianceProxyClient, self).__init__(input_keys=['Kp','Kr'], outcomes = ['continue', 'failed'])
+    #def __init__(self, robot_name, Kp, Kr, R=np.eye(3), D=2, hold_pose='on'):
+    def __init__(self, robot_name, Kp, Kr):
+        super(SetReconcycleCartesianCompliance, self).__init__(outcomes = ['continue', 'failed'])
         
         try:
             assert robot_name in ['panda_1', 'panda_2']
         except: 
-            print("Robot name NOT in [panda_1, panda_2], FIX!")
             Logger.loginfo("SetCartesianCompliance INVALID ROBOT NAMESPACE")
+        
+        try:
+            assert len(Kp) == 3
+            assert len(Kr) == 3
+            for i in Kp : assert i >= 0
+            for i in Kr : assert i >= 0
             
+            self.Kp = Kp
+            self.Kr = Kr
+            self.R = np.eye(3)
+            self.D = 2
+            self.hold_pose = 'on'
+        except:
+            Logger.loginfo("SetCartesianCompliance INVALID input parameter (assertion check fail)")
+        
         self.command_topic = "/" + str(robot_name) + "/cartesian_impedance_controller/command"
         self.reset_topic = "/" + str(robot_name) + "/cartesian_impedance_controller/reset_target"
         self.cart_stiff_topic =  "/" + str(robot_name) + "/cartesian_impedance_controller/stiffness"
@@ -50,30 +66,13 @@ class SetCartesianComplianceProxyClient(EventState):
     def on_enter(self, userdata):
         # Check robot is in "CartesianImpedance" mode. If not: print("Not in cartesian impedance control strategy")
         
-        holdPose = 'on' if not hasattr(userdata,'holdPose') else userdata.holdPose
-        R = np.eye(3) if not hasattr(userdata,'R') else userdata.R
-        D = 2.0 if not hasattr(userdata,'D') else userdata.D
-        Kp = userdata.Kp
-        Kr = userdata.Kr
+        R = self.R
+        D = self.D
+        Kp = self.Kp
+        Kr = self.Kr
      
         # Check input params 
-        try:
-            assert len(Kp) == 3
-            assert len(Kr) == 3
-            for i in Kp : assert i >= 0
-            for i in Kr : assert i >= 0
-            
-            assert R.shape == (3,3)
-            larger_args = np.argwhere(D > 2)
-            assert len(larger_args) == 0
-            smaller_args = np.argwhere(D<0)
-            assert len(smaller_args) == 0
-        except:
-            # Handle exceptions
-            print("SetCartesianCompliance INVALID input parameter (assertion check fail)")
-            Logger.loginfo("SetCartesianCompliance INVALID input parameter (assertion check fail)")
-            self.outcome = 'failed'
-            return
+
             
         # Calculate stiff matrix
         trM = np.diag(Kp)
@@ -104,7 +103,7 @@ class SetCartesianComplianceProxyClient(EventState):
         stiffness.d = np.concatenate((np.reshape(trD,(9,1)),np.reshape(rotD,(9,1))))
         
         
-        if holdPose == 'off':
+        if self.hold_pose == 'off':
             self.publisher.publish(self.cart_stiff_topic, stiffness)
         else:
             cmd_msg = CartesianCommand()

@@ -10,7 +10,7 @@
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
 from flexbe_states.wait_state import WaitState
 from reconcycle_flexbe_states.CallAction_JointTrapVel import CallJointTrap
-from reconcycle_flexbe_states.CallAction_TF_CartLin import CallActionTFCartLin
+from reconcycle_flexbe_states.CallAction_TF_CartLin import CallActionTFCartLin as reconcycle_flexbe_states__CallActionTFCartLin
 from reconcycle_flexbe_states.ErrorRecoveryProxy import FrankaErrorRecoveryActionProxy
 from reconcycle_flexbe_states.MoveSoftHand import MoveSoftHand
 from reconcycle_flexbe_states.Read_TF_CartLin import ReadTFCartLin
@@ -19,7 +19,7 @@ from reconcycle_flexbe_states.avtivate_raspi_output import ActivateRaspiDigitalO
 from reconcycle_flexbe_states.load_controller_service_client import LoadControllerProxyClient
 from reconcycle_flexbe_states.read_from_mongodb import ReadFromMongo
 from reconcycle_flexbe_states.read_from_mongodb_POSE import ReadFromMongoPOSE
-from reconcycle_flexbe_states.set_cartesian_impedance_service_client import SetCartesianImpedanceProxyClient
+from reconcycle_flexbe_states.set_cartesian_compliance_reconcycle import SetReconcycleCartesianCompliance
 from reconcycle_flexbe_states.switch_controller_service_client import SwitchControllerProxyClient
 from reconcycle_flexbe_states.unload_controller_service_client import UnloadControllerProxyClient
 # Additional imports can be added inside the following tags
@@ -132,7 +132,7 @@ Opis:
 			# x:548 y:49
 			OperatableStateMachine.add('switch_on_controller',
 										SwitchControllerProxyClient(robot_name="panda_1", start_controller=["cartesian_impedance_controller"], stop_controller=["joint_impedance_controller"], strictness=1),
-										transitions={'continue': 'set cartesian impedance', 'failed': 'failed'},
+										transitions={'continue': 'finished', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
 			# x:83 y:354
@@ -141,11 +141,6 @@ Opis:
 										transitions={'continue': 'switch_on_controller', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:782 y:44
-			OperatableStateMachine.add('set cartesian impedance',
-										SetCartesianImpedanceProxyClient(cartesian_stiffness=[2000,2000,2000,100,100,100], robot_name="panda_1"),
-										transitions={'continue': 'finished', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
 			# x:76 y:194
 			OperatableStateMachine.add('find_current_controller',
@@ -248,21 +243,21 @@ Opis:
 		with _sm_cart_move_to_object_4:
 			# x:408 y:50
 			OperatableStateMachine.add('Move pickup above pose',
-										CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=[0,0,0.2,0,0,1,0]),
+										reconcycle_flexbe_states__CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=[0,0,0.2,0,0,1,0]),
 										transitions={'continue': 'Move pickup pose', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_pickup_pose', 't2_out': 'minjerk_out'})
 
 			# x:413 y:183
 			OperatableStateMachine.add('Move pickup pose',
-										CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=[0,0,0.0,0,0,1,0]),
+										reconcycle_flexbe_states__CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=[0,0,0.0,0,0,1,0]),
 										transitions={'continue': 'Move back pickup', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_pickup_pose', 't2_out': 't2_out'})
 
 			# x:425 y:310
 			OperatableStateMachine.add('Move back pickup',
-										CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=[0,0,0.2,0,0,1,0]),
+										reconcycle_flexbe_states__CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=[0,0,0.2,0,0,1,0]),
 										transitions={'continue': 'finished', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_pickup_pose', 't2_out': 't2_out'})
@@ -281,7 +276,7 @@ Opis:
 
 			# x:297 y:273
 			OperatableStateMachine.add('Move holder up',
-										CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=None),
+										reconcycle_flexbe_states__CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=None),
 										transitions={'continue': 'finished', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_holder_up', 't2_out': 't2_out'})
@@ -295,7 +290,7 @@ Opis:
 
 			# x:298 y:158
 			OperatableStateMachine.add('Move holder pickup',
-										CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=None),
+										reconcycle_flexbe_states__CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=None),
 										transitions={'continue': 'Move holder up', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_holder_pickup', 't2_out': 't2_out'})
@@ -314,7 +309,7 @@ Opis:
 
 			# x:344 y:235
 			OperatableStateMachine.add('Move near slider',
-										CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=None),
+										reconcycle_flexbe_states__CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=None),
 										transitions={'continue': 'Release object', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_slider_pose_near', 't2_out': 'minjerk_out'})
@@ -335,7 +330,7 @@ Opis:
 
 			# x:342 y:147
 			OperatableStateMachine.add('Move above slider',
-										CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=None),
+										reconcycle_flexbe_states__CallActionTFCartLin(namespace="panda_1", exe_time=3, offset=None),
 										transitions={'continue': 'Move near slider', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_slider_pose_above', 't2_out': 'minjerk_out'})

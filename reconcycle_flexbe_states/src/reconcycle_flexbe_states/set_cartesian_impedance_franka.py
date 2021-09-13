@@ -5,14 +5,12 @@ from flexbe_core.proxy import ProxyServiceCaller
 from franka_msgs.srv import *
 
 
-class SetCartesianImpedanceProxyClient(EventState):
+class SetFrankaCartesianImpedance(EventState):
 
     '''
-    FlexBe state cartesian impedance Proxy client
+    Sets the Cartesian impedance for (x, y, z, roll, pitch, yaw) of the Franka internal controller.
 
-    Sets the Cartesian impedance for (x, y, z, roll, pitch, yaw) in the internal controller.
-
-    User-provided torques are not affected by this setting.
+    Custom Reconcycle controllers are not affected by this setting. 
     
     Parameters as follow
 
@@ -25,7 +23,7 @@ class SetCartesianImpedanceProxyClient(EventState):
     '''
     
     def __init__(self, cartesian_stiffness, robot_name):
-        super(SetCartesianImpedanceProxyClient, self).__init__(outcomes = ['continue', 'failed'])
+        super(SetFrankaCartesianImpedance, self).__init__(outcomes = ['continue', 'failed'])
         
         # Input params init
         self.stiffness = cartesian_stiffness
