@@ -55,7 +55,7 @@ class CallActionTFCartLin(EventState):
                                 userdata.t2_data[0].orientation.w])
         # TODO: Implement offset calculation for position and orientation!
         position = position + self.offset[0:3]
-        # orientation *= self.offset[3:]
+        orientation = tft.quaternion_multiply(orientation, self.offset[3:])
 
         #goal = robot_module_msgs.msg.CartLinTaskActionGoal() 
         #goal.goal.target_pose=[userdata.t2_data]

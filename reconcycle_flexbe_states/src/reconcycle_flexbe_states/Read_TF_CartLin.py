@@ -52,8 +52,7 @@ class ReadTFCartLin(EventState):
         except Exception as e:
             Logger.loginfo('Target or source frame not in Pose() structure!')
             return 'failed'
-	
-    def execute(self, userdata):
+        
         off = userdata.offset
         rot = userdata.rotation
         try:
@@ -66,11 +65,14 @@ class ReadTFCartLin(EventState):
             Logger.loginfo("t_pose data: {}".format(t_pose))
             Logger.loginfo("offset_z: {}".format(offset_z))
             Logger.loginfo("target_pose: {}".format(t_pose_target))
-            userdata.t2_data = t_pose_target
+            userdata.t2_data = [t_pose_target.pose]
             return 'continue'
         except (tf2_ros.TransformException, tf2_ros.ConnectivityException):
-            Logget.loginfo("Failed to execute")
+            Logger.loginfo("Failed to execute")
             return 'failed'
+	
+    def execute(self, userdata):
+        return 'continue'  
 
     def on_exit(self, userdata):
         Logger.loginfo('Exiting read TF (CartLin).')
