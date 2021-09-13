@@ -7,66 +7,66 @@ from std_msgs.msg import Empty
 from franka_msgs.msg import FrankaState
 import numpy as np
 import tf
+import rospy
 
 class SetCartesianComplianceProxyClient(EventState):
 
     '''
-    FlexBE state that sets the cartesian impedance parameters
+    Sets the compliance parameters of the IJS cartesian impedance controller.
     
-    -- robot_name    string                   Namespace of the robot 
-    ># userdata      ImpedanceParameters      number of joints, stiffness and damping 
+    Parameters:   
+    -- robot_name    string           Namespace of the robot 
     
+    Run-time userdata:
+    ># Kp            float[3]         stiffness for positional d.o.f
+    ># Kr            float[3]         stiffness for rotational d.o.f
+    
+    Outcomes:
     <= continue
     <= failed
     '''
     
     def __init__(self, robot_name):
-        super(SetCartesianComplianceProxyClient, self).__init__(outcomes = ['continue', 'failed'])
+        super(SetCartesianComplianceProxyClient, self).__init__(input_keys=['Kp','Kr'], outcomes = ['continue', 'failed'])
         
         try:
             assert robot_name in ['panda_1', 'panda_2']
         except: 
-            print("Robot name NOT in [panda_1, panda_2], FIX !")
+            print("Robot name NOT in [panda_1, panda_2], FIX!")
             Logger.loginfo("SetCartesianCompliance INVALID ROBOT NAMESPACE")
             
-        self.topic = "/" + str(robot_name) + "/cartesian_impedance_controller/command"
-        self.client_pub = ProxyPublisher({self.topic: CartesianCommand})
-        
-        self.cart_stiff_topic =  "/" + str(robot_name) + "/cartesian_impedance_controller/stiffness"
-        self.cart_stiff_pub = ProxyPublisher({self.cart_stiff_topic: ImpedanceParameters})
-        
-        # To reset target robot position:
-        # send std_msgs/Empty msg to the specified topic. '/cartesian_impedance_controller/reset_target', 'std_msgs/Empty'
+        self.command_topic = "/" + str(robot_name) + "/cartesian_impedance_controller/command"
         self.reset_topic = "/" + str(robot_name) + "/cartesian_impedance_controller/reset_target"
-        self.client_reset_pub = ProxyPublisher({self.reset_topic: Empty})
+        self.cart_stiff_topic =  "/" + str(robot_name) + "/cartesian_impedance_controller/stiffness"
+        self.publisher = ProxyPublisher({self.command_topic: CartesianCommand, self.reset_topic: Empty, self.cart_stiff_topic: ImpedanceParameters}) 
         
-        ## To track robot position, , we need to listen to position messages.
-        self.franka_state_topic = "/%s/franka_state"%robot_name
-        self.state_subscriber = ProxySubscriberCached({self.franka_state_topic: FrankaState})
-        # FrankaState:
-        # http://docs.ros.org/en/api/sensor_msgs/html/msg/JointState.html
-
+        
+        ## To track robot position, we need to listen to position messages.
+        self.franka_state_topic = "/%s/franka_state_controller/franka_states"%robot_name
+        self.subscriber = ProxySubscriberCached({self.franka_state_topic: FrankaState})
+        
+        self.outcome = 'failed' 
     
     def on_enter(self, userdata):
         # Check robot is in "CartesianImpedance" mode. If not: print("Not in cartesian impedance control strategy")
+        
+        holdPose = 'on' if not hasattr(userdata,'holdPose') else userdata.holdPose
+        R = np.eye(3) if not hasattr(userdata,'R') else userdata.R
+        D = 2.0 if not hasattr(userdata,'D') else userdata.D
+        Kp = userdata.Kp
+        Kr = userdata.Kr
      
         # Check input params 
         try:
-            assert len(userdata.Kp) == 3
-            assert len(userdata.Kr) == 3
-            for i in userdata.Kp : assert i >= 0
-            for i in userdata.Kr : assert i >= 0
+            assert len(Kp) == 3
+            assert len(Kr) == 3
+            for i in Kp : assert i >= 0
+            for i in Kr : assert i >= 0
             
-            # If R and D are not specified, use current values of robot
-            if userdata.R == None: 
-                0 # Add
-            if userdata.D == None:
-                0 # Add
-            
-            assert userdata.R.shape == (3,3)
-            larger_args = np.argwhere(userdata.D > 2)
+            assert R.shape == (3,3)
+            larger_args = np.argwhere(D > 2)
             assert len(larger_args) == 0
-            smaller_args = np.argwhere(userdata.D<0)
+            smaller_args = np.argwhere(D<0)
             assert len(smaller_args) == 0
         except:
             # Handle exceptions
@@ -76,16 +76,16 @@ class SetCartesianComplianceProxyClient(EventState):
             return
             
         # Calculate stiff matrix
-        trM = np.diag(userdata.Kp)
-        rotM = np.diag(userdata.Kr)
+        trM = np.diag(Kp)
+        rotM = np.diag(Kr)
         
         # Rotate
-        trK = userdata.R * trM *np.transpose(userdata.R)
+        trK = R * trM *np.transpose(R)
         rotK = rotM
         
         # Damping
-        trD = userdata.R*2*np.sqrt(trM)*np.transpose(userdata.R)
-        rotD = userdata.D*np.sqrt(rotM)
+        trD = R*2*np.sqrt(trM)*np.transpose(R)
+        rotD = D*np.sqrt(rotM)
         
         #Check for NaN
         try:
@@ -94,48 +94,52 @@ class SetCartesianComplianceProxyClient(EventState):
             assert not np.isnan(trK).any()
             assert not np.isnan(rotK).any()
         except:
-            Logger.loginfo("SetCartesianCompliance NaNs present in trD/rotD/trK/rotK !(assertion check fail)")
+            Logger.loginfo("SetCartesianCompliance NaNs present in trD/rotD/trK/rotK! (assertion check fail)")
             self.outcome = 'failed'
             return
             
         stiffness = ImpedanceParameters()
         stiffness.n = 9
-        stiffness.k = [np.reshape(tdK, (9,1)), np.reshape(rotK, (9,1))]
-        stiffness.d = [np.reshape(trD, (9,1)), np.reshape(rotD, (9,1))]
+        stiffness.k = np.concatenate((np.reshape(trK,(9,1)),np.reshape(rotK,(9,1))))
+        stiffness.d = np.concatenate((np.reshape(trD,(9,1)),np.reshape(rotD,(9,1))))
         
-        if userdata.holdPose == 'off':
-            self.cart_stiff_pub.publish(self.cart_stiff_topic, stiffness)
         
+        if holdPose == 'off':
+            self.publisher.publish(self.cart_stiff_topic, stiffness)
         else:
             cmd_msg = CartesianCommand()
-            cmd_msg.Impedance = stiffness
+            cmd_msg.impedance = stiffness
             
             # Reset current robot target
-            self.client_reset_pub.publish(self.reset_topic, Empty())
+            self.publisher.publish(self.reset_topic, Empty())
             
             # Get last robot joint positions
-            last_franka_state = self.state_subscriber.get_last_msg(self.franka_state_topic)
+            if self.subscriber.has_msg(self.franka_state_topic):
+                last_franka_state = self.subscriber.get_last_msg(self.franka_state_topic)
+                self.subscriber.remove_last_msg(self.franka_state_topic)
+            else:
+                print('didnt get state')
+                self.outcome = 'failed'
+                return
             
-            EE_matrix = last_franka_state.O_T_EE
+            EE_matrix = np.reshape(last_franka_state.O_T_EE,(4,4),order='f')
             
-            cmd_msg.pose.position.X = robot.EE_matrix[12]
-            cmd_msg.pose.position.Y = robot.EE_matrix[13]
-            cmd_msg.pose.position.Z = robot.EE_matrix[14]
-                        
-            # EE_matrix is COLUMN_MAJOR !
-            rotation_matrix = np.array([[EE_matrix[0], EE_matrix[4], EE_matrix[8]],
-                                        [EE_matrix[1], EE_matrix[5], EE_matrix[9]],
-                                        [EE_matrix[2], EE_matrix[6], EE_matrix[10]]], dtype= np.double)
-                                        
-            quaternion = tf.transformations.quaternion_from_matrix(rotation_matrix)     # PREVERI CE JE SPLOH PRAV !!!!!!!
+            cmd_msg.pose.position.x = EE_matrix[0,3]
+            cmd_msg.pose.position.y = EE_matrix[1,3]
+            cmd_msg.pose.position.z = EE_matrix[2,3]
+            quaternion = tf.transformations.quaternion_from_matrix(EE_matrix)    
             
-            cmd_msg.pose.orientation.W = quaternion[0]
-            cmd_msg.pose.orientation.X = quaternion[1]
-            cmd_msg.pose.orientation.Y = quaternion[2]
-            cmd_msg.pose.orientation.Z = quaternion[3]
+            # tf library uses <x,y,z,w> quaternions
+            cmd_msg.pose.orientation.x = quaternion[0]
+            cmd_msg.pose.orientation.y = quaternion[1]
+            cmd_msg.pose.orientation.z = quaternion[2]
+            cmd_msg.pose.orientation.w = quaternion[3]
+            
+            cmd_msg.time_from_start = rospy.Duration(0,0)
+            
             
             # Send command message
-            self.client_pub.publish(self.topic, cmd_msg)
+            self.publisher.publish(self.command_topic, cmd_msg)
         
         Logger.loginfo("Setting CartesianCompliance...")        
         self.outcome = 'continue'
@@ -151,3 +155,7 @@ class SetCartesianComplianceProxyClient(EventState):
 
     def on_stop(self):
         pass
+    
+    
+    
+
