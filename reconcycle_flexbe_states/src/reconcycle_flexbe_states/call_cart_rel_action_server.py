@@ -15,7 +15,7 @@ from geometry_msgs.msg import Point, Quaternion, Pose, PoseStamped
 class CallCartRel(EventState):
 
     '''
-    Calls cartesian relative server @ 'cart_rel' topic
+    [OBSOLETE] Calls cartesian relative server @ 'cart_rel' topic
     [...]
 
     ># joints_data string/int      The name under which the name is written into MongoDB
