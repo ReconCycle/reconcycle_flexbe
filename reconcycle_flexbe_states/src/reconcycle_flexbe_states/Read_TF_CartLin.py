@@ -56,7 +56,9 @@ class ReadTFCartLin(EventState):
         off = userdata.offset
         rot = userdata.rotation
         try:
-            t_pose = self.buffer.lookup_transform(self.source_frame, self.target_frame, rospy.Time())
+        #t_pose = self.buffer.lookup_transform(self.source_frame, self.target_frame, rospy.Time(0), rospy.Duration(1.0))
+            t_pose = self.buffer.lookup_transform(self.source_frame, self.target_frame, rospy.Time(0))
+
             rot = tf.transformations.quaternion_from_euler(rot[0], rot[1], rot[2])
             offset_z = PoseStamped(pose=Pose(position=Point(off[0], off[1], off[2]), orientation=Quaternion(rot[0], rot[1], rot[2], rot[3])))
             t_pose_target = tf2_geometry_msgs.do_transform_pose(offset_z, t_pose)
@@ -67,10 +69,14 @@ class ReadTFCartLin(EventState):
             Logger.loginfo("target_pose: {}".format(t_pose_target))
             userdata.t2_data = [t_pose_target.pose]
             return 'continue'
-        except (tf2_ros.TransformException, tf2_ros.ConnectivityException):
-            Logger.loginfo("Failed to execute")
-            return 'failed'
+        except (tf2_ros.TransformException, tf2_ros.ConnectivityException) as exception:
+             Logger.loginfo("Failed to execute")
+             Logger.loginfo("{}".format(exception))
+             return 'failed'
 	
+
+
+
     def execute(self, userdata):
         return 'continue'  
 

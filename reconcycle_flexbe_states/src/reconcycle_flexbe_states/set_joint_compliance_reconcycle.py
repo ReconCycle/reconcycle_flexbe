@@ -14,18 +14,38 @@ class SetJointComplianceProxyClient(EventState):
     '''
     FlexBE state that sets the joint impedance parameters
     
-    -- robot_name    string                   Namespace of the robot 
-    ># userdata      ImpedanceParameters      number of joints, stiffness and damping 
+    Parameters:
+    -- robot_name    string                   Namespace of the robot
+    -- k             float[7]                 proportional factor for joint control
+    -- d             float[7]                 damping factor for joint control
     
+    Outcomes:
     <= continue
     <= failed
     '''
     
-    def __init__(self, robot_name):
+    def __init__(self, robot_name, k, d):
         super(SetJointComplianceProxyClient, self).__init__(outcomes = ['continue', 'failed'])
         
         try:
             assert robot_name in ['panda_1', 'panda_2']
+            # Check input params 
+            assert len(k) == 7
+            assert len(d) == 7
+            for i in k : assert i >= 0
+            for i in d : assert i >= 0
+            assert not np.isnan(k).any()
+            assert not np.isnan(d).any()
+            self.k = k
+            self.d = d
+
+        except:
+            # Handle exceptions
+            print("SetJointCompliance INVALID input parameter (assertion check fail)")
+            Logger.loginfo("SetJointCompliance INVALID input parameter (assertion check fail)")
+            self.outcome = 'failed'
+            return
+
         except: 
             print("Robot name NOT in [panda_1, panda_2], FIX !")
             Logger.loginfo("SetJointCompliance INVALID ROBOT NAMESPACE")
@@ -45,22 +65,6 @@ class SetJointComplianceProxyClient(EventState):
         # http://docs.ros.org/en/api/sensor_msgs/html/msg/JointState.html
             
     def on_enter(self, userdata):
-     
-        # Check input params 
-        try:
-            assert len(userdata.k) == 7
-            assert len(userdata.d) == 7
-            for i in userdata.k : assert i >= 0
-            for i in userdata.d : assert i >= 0
-            assert not np.isnan(userdata.k).any()
-            assert not np.isnan(userdata.d).any()
-        except:
-            # Handle exceptions
-            print("SetJointCompliance INVALID input parameter (assertion check fail)")
-            Logger.loginfo("SetJointCompliance INVALID input parameter (assertion check fail)")
-            self.outcome = 'failed'
-            return
-            
         ###### 
         # Check robot is in Joint Impedance control strategy. if not: print("Not in joint impedance control strategy")
         
