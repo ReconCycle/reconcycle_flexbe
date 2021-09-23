@@ -26,17 +26,18 @@ class DropRandomOnTable(EventState):
     def __init__(self, namespace, exe_time):
         super(DropRandomOnTable, self).__init__(outcomes = ['continue', 'failed'], output_keys = ['t2_out'])
         
-        
         rospy.loginfo('__init__ callback happened.')   
-        
+
         self.exe_time = exe_time
         self.ns = namespace
         
-        # Define limits of XYZ and Z rotation
-        self.low_xyz = [-0.122, -0.626, 0.09]
-        self.high_xyz = [0.122, -0.531, 0.091]
-        self.init_eulers = [np.pi, 0, 3*np.pi/4]
-        self.rotz_limits = [-np.pi/4, np.pi/4]
+        # Define limits of XYZ and rotation
+        self.low_xyz = [-0.122, -0.626, 0.08]
+        self.high_xyz = [0.122, -0.581, 0.081]
+        self.rot_limits = [-np.pi/3, np.pi/3]
+        self.init_eulers = np.deg2rad([-124.62, 176.05, 143.00])
+        self.H = np.zeros((4, 4))
+        self.R = np.eye(4)
         
         # Declaring topic and client
         self._topic = self.ns + '/cartesian_impedance_controller/cart_lin_as'
@@ -48,10 +49,20 @@ class DropRandomOnTable(EventState):
         Logger.loginfo("Started sending goal...")
         # create goal
 
+        # orientation = self.init_eulers + [random_rot, 0, 0]
+        # orientation = qt.from_euler_angles(orientation)
+        # orientation = qt.as_float_array(orientation)[[1,2,3,0]]
+
         position = np.random.uniform(self.low_xyz, self.high_xyz)
-        random_rotz = np.random.uniform(self.rotz_limits[0], self.rotz_limits[1])
-        orientation = self.init_eulers + [0, 0, random_rotz]
-        orientation = qt.from_euler_angles(orientation)
+        random_rot = np.random.uniform(self.rot_limits[0], self.rot_limits[1])
+        orientation = (qt.from_euler_angles(self.init_eulers) * 
+            qt.from_euler_angles([0, 0, random_rot]))
+        # self.H[:3, :3] = qt.as_rotation_matrix(orientation)
+        # self.H[:3, -1] = position
+        # self.H[-1, -1] = 1.0
+        # self.H = self.H.dot(self.R)
+        # position = self.H[:3, -1]
+        # orientation = qt.as_float_array(qt.from_rotation_matrix(self.H))[[1,2,3,0]]
         orientation = qt.as_float_array(orientation)[[1,2,3,0]]
         
         goal = robot_module_msgs.msg.CartLinTaskGoal() 
@@ -64,15 +75,11 @@ class DropRandomOnTable(EventState):
         pose.orientation.z = orientation[2]
         pose.orientation.w = orientation[3]
         
-        goal.target_pose=[pose]
-        
-        print(goal.target_pose)
-
-        #goal.target_pose=[userdata.t2_data]
+        goal.target_pose = [pose]
         goal.desired_travel_time=self.exe_time 
 
         Logger.loginfo("Goal created: {}".format(goal))
-
+        userdata.t2_out = [pose]
             
         try:
             # send goal and wait for result
@@ -93,7 +100,7 @@ class DropRandomOnTable(EventState):
         
     
     def execute(self, userdata):
-        userdata.t2_out = self.result      
+        #userdata.t2_out = self.result      
     
         return 'continue'        
 

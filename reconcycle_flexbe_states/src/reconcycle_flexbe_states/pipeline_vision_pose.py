@@ -9,6 +9,8 @@ from flexbe_core.proxy import ProxySubscriberCached
 from std_msgs.msg import String
 from geometry_msgs.msg import Pose
 import json
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 class VisionPoseData(EventState):
@@ -48,19 +50,72 @@ class VisionPoseData(EventState):
             # load JSON String data to load_data and get the info
             loaded_data = json.loads(self.data.data)
             #Logger.loginfo("Loaded data: {}".format(loaded_data))
-            class_name = loaded_data[0]['class_name']
-            Logger.loginfo("Class Name: {}".format(class_name))
-            score = loaded_data[0]['score']
-            obb_corners = loaded_data[0]['obb_corners'] #corners coordinates
-            Logger.loginfo("obb_corners: {}".format(obb_corners))
-            obb_center = loaded_data[0]['obb_center']  #center coordinates
-            Logger.loginfo("obb_center: {}".format(obb_center))
-            obb_rot_quat = loaded_data[0]['obb_rot_quat'] # Quaternion
-            Logger.loginfo("obb_rot_quat: {}".format(obb_rot_quat))
+            for class_num, data in enumerate(loaded_data):
+                class_name = data['class_name']
+                if 'hca_back' in class_name:
+                    break
+
+            Logger.loginfo("Class Name: {}".format(loaded_data[class_num]['class_name']))
+            score = loaded_data[class_num]['score']
+            obb_corners = loaded_data[class_num]['obb_corners'] #corners coordinates
+            #Logger.loginfo("obb_corners: {}".format(obb_corners))
+            obb_center = loaded_data[class_num]['obb_center']  #center coordinates
+            #Logger.loginfo("obb_center: {}".format(obb_center))
+            obb_rot_quat = loaded_data[class_num]['obb_rot_quat'] # Quaternion
+            #Logger.loginfo("obb_rot_quat: {}".format(obb_rot_quat))
+
+            #if class_name == 'hca_back':
+                #Logger.loginfo("obb_corners: {}".format(obb_corners))
 
             # display /camera_$num/vision_pipeline/data topic data in json format
-            Logger.loginfo("center coordinates(x,y): {}".format(obb_center[0:]))
-            Logger.loginfo("rotation quaternion: {}".format(obb_rot_quat[0:]))
+            #Logger.loginfo("center coordinates(x,y): {}".format(obb_center[0:]))
+            #Logger.loginfo("rotation quaternion: {}".format(obb_rot_quat[0:]))
+
+            # Calculate quaternion from corner coordinates
+            distances = []
+            corners = np.array(obb_corners)
+            Logger.loginfo("Corners: {}".format(corners))
+            first_corner = corners[0]
+
+            for ic, corner in enumerate(corners):
+                distances.append(np.linalg.norm(corner - first_corner))
+            Logger.loginfo("Distances: {}".format(distances))
+            distances = np.array(distances)
+            idx_edge = distances.argsort()[-2]
+            Logger.loginfo("Index of edge: {}".format(idx_edge))
+            second_corner = corners[idx_edge]
+
+            highest_y = np.argmax([first_corner[1], second_corner[1]])
+            if highest_y == 0:
+                vector_1 = first_corner - second_corner
+            elif highest_y == 1:
+                vector_1 = second_corner - first_corner
+
+            unit_vector_1 = vector_1 / np.linalg.norm(vector_1)
+            unit_vector_2 = np.array([0, 1])
+            Logger.loginfo("Vectors: {}, {}".format(vector_1, unit_vector_2))
+            # dot_product = np.dot(unit_vector_1, unit_vector_2)
+            # angle = np.arccos(dot_product)
+
+            angle = (np.arctan2(unit_vector_1[1], unit_vector_1[0]) -
+                     np.arctan2(unit_vector_2[1], unit_vector_2[0]))
+            Logger.loginfo("Angle: {}".format(angle * 180 / np.pi))
+
+            obb_rot_quat = np.concatenate((np.sin(angle/2)*np.array([0,0,1]), 
+                                           np.array([np.cos(angle/2)])))
+            Logger.loginfo("Quaternion: {}".format(obb_rot_quat))
+
+            ##### PLOTTING FOR TEST ##### 
+            # plt.scatter(corners[:,0], corners[:,1])
+            # plt.plot(first_corner[0], first_corner[1], 'ro')
+            # plt.arrow(first_corner[0], first_corner[1], vector_1[0], vector_1[1], 'g')
+            # plt.arrow(first_corner[0], first_corner[1], unit_vector_1[0], unit_vector_1[1], 'y')
+            # plt.gca().invert_xaxis()
+            # plt.axis('equal')
+            # plt.title("%.3f"%(angle * 180 / np.pi))
+            # plt.savefig('/ros_ws/src/reconcycle_states/reconcycle_flexbe_states/src/reconcycle_flexbe_states/corners.png')
+            # plt.close()
+            #################################################
 
             # object center position and rotation
             self.output_data.position.x = obb_center[0]
@@ -71,9 +126,9 @@ class VisionPoseData(EventState):
             self.output_data.orientation.z = obb_rot_quat[2]
             self.output_data.orientation.w = obb_rot_quat[3]
 
-            Logger.loginfo("Vision data in Pose() format: {}".format(self.output_data))
+            #Logger.loginfo("Vision data in Pose() format: {}".format(self.output_data))
 
-            userdata.vision_data = self.output_data
+            userdata.vision_data = [self.output_data]
         
             return 'continue'
         
