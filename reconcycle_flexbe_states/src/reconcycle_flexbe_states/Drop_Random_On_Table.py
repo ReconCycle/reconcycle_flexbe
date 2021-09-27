@@ -32,7 +32,7 @@ class DropRandomOnTable(EventState):
         self.ns = namespace
         
         # Define limits of XYZ and rotation
-        self.low_xyz = [-0.122, -0.626, 0.08]
+        self.low_xyz = [-0.05, -0.626, 0.08]
         self.high_xyz = [0.122, -0.581, 0.081]
         self.rot_limits = [-np.pi/3, np.pi/3]
         self.init_eulers = np.deg2rad([-124.62, 176.05, 143.00])

@@ -88,8 +88,8 @@ class CallActionTFCartLin(EventState):
     
             # # Fix rotation if required (NOT REQUIRED CURRENTLY)
             # if self.limit_rotations:
-            #     if (eulers[0] > -45 and eulers[0] < 90):
-            #         self.offset[-1] -= 180
+            #     if (eulers[2] < -30 or eulers[2] > 70):
+            #         self.offset[-1] += 180
             #         orientation = (qt.from_float_array(old_orientation[[3,0,1,2]]) * 
             #             qt.from_euler_angles(np.deg2rad(self.offset[3:])))
             #         self.R[:3, -1] = self.offset[:3]
