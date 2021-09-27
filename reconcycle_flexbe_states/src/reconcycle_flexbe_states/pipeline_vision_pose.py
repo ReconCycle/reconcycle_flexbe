@@ -102,7 +102,6 @@ class VisionPoseData(EventState):
             # If angle is too negative, add 180 degrees
             if (angle * 180 / np.pi) < -30:
                 angle = angle + np.pi
-
             Logger.loginfo("Angle: {}".format(angle * 180 / np.pi))
 
             obb_rot_quat = np.concatenate((np.sin(angle/2)*np.array([0,0,1]), 
