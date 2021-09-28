@@ -9,7 +9,7 @@ import rospy
 class MoveCutterClient(EventState):
 
     '''
-    FlexBe state Unload controller Proxy client
+    FlexBe state Move Cutter client
     
     Parameters as follow
 
