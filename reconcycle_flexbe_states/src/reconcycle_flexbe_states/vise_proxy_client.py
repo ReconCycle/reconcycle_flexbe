@@ -9,7 +9,7 @@ import rospy
 class ChangeViseModelPositionClient(EventState):
 
     '''
-    FlexBe state Unload controller Proxy client
+    FlexBe state Change Vise Position client
     
     Parameters as follow
 
