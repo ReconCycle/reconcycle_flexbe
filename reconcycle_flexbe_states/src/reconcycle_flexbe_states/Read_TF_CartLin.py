@@ -34,6 +34,7 @@ class ReadTFCartLin(EventState):
         # Initialize the TF listener
         self.buffer = tf2_ros.Buffer()
         self.listener = tf2_ros.TransformListener(self.buffer)
+        self.status = 'continue'
 
         rospy.sleep(0.2)
 
@@ -51,7 +52,7 @@ class ReadTFCartLin(EventState):
                 raise ValueError('No target and source data!')
         except Exception as e:
             Logger.loginfo('Target or source frame not in Pose() structure!')
-            return 'failed'
+            self.status = 'failed'
         
         off = userdata.offset
         rot = userdata.rotation
@@ -68,18 +69,21 @@ class ReadTFCartLin(EventState):
             Logger.loginfo("offset_z: {}".format(offset_z))
             Logger.loginfo("target_pose: {}".format(t_pose_target))
             userdata.t2_data = [t_pose_target.pose]
-            return 'continue'
+            self.status = 'continue'
         except (tf2_ros.TransformException, tf2_ros.ConnectivityException) as exception:
              Logger.loginfo("Failed to execute")
              Logger.loginfo("{}".format(exception))
-             return 'failed'
-	
+             self.status = 'failed'
+
+	return self.status 
+
 
 
 
     def execute(self, userdata):
-        return 'continue'  
+        return self.status
 
     def on_exit(self, userdata):
         Logger.loginfo('Exiting read TF (CartLin).')
-        return 'continue'
+        
+        return self.status
