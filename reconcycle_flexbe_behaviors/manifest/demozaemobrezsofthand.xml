@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="DemozaEMOBrezSoftHand">
+
+	<executable package_path="reconcycle_flexbe_behaviors.demozaemobrezsofthand_sm" class="DemozaEMOBrezSoftHandSM" />
+	<tagstring>EMO</tagstring>
+	<author>Boris Kuster, Mihael Simonic</author>
+	<date>Wed Jul 14 2021</date>
+	<description>
+		Potrebna oprema:
+
+bambus-1.local: roslaunch controllers 
+raspi-panda1-block.local: docker
+raspi-clamp-block.local: docker
+
+
+Opis:
+- Preberi pozicijo HCA iz kamere
+- Poberi z Qb hand
+- Daj v primez
+- Stisni in zavrti tja in nazaj
+- Spusti primez 
+- Poberi z robotm
+- Odlozi nazaj na zacetek
+- Ponovi
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="numeric" name="Kp" default="2000" label="Kp" hint="Stiffness of positional d.o.f">
+			<min value="0" />
+			<max value="3000" />
+		</param>
+
+		<param type="numeric" name="Kr" default="30" label="Kr" hint="Stiffness of rotational d.o.f">
+			<min value="0" />
+			<max value="50" />
+		</param>
+
+		<param type="numeric" name="max_acl" default="3" label="max_acl" hint="Sets the max_acl">
+			<min value="0.5" />
+			<max value="5" />
+		</param>
+
+		<param type="numeric" name="max_vel" default="1" label="max_vel" hint="Sets the max_vel">
+			<min value="0.5" />
+			<max value="3" />
+		</param>
+
+	</params>
+
+
+</behavior>

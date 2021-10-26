@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="EMO when we are away">
+
+	<executable package_path="reconcycle_flexbe_behaviors.emo_when_we_are_away_sm" class="EMOwhenweareawaySM" />
+	<tagstring>it's a joke</tagstring>
+	<author>Miha with the help of Boris and RT</author>
+	<date>Mon Oct 04 2021</date>
+	<description>
+		A challenge posed by Primoz
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>
