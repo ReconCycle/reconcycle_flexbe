@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Levering Action Kalo 1.5 HCA">
+
+	<executable package_path="reconcycle_flexbe_behaviors.levering_action_kalo_1_5_hca_sm" class="LeveringActionKalo15HCASM" />
+	<tagstring>hca, levering</tagstring>
+	<author>Kubra Karacan, Matija Mavsar, Mihael Simonic</author>
+	<date>Tue Nov 30 2021</date>
+	<description>
+		1. Joint move to  levering point
+2. Levering action based on Force Action
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>

@@ -73,8 +73,10 @@ if __name__ == '__main__':
     rospy.init_node('test_node')
 
     class UserData():
-        entry_name = "emo/j_above_pickup_pose"
+        entry_name = 'trj_umik' # "emo/j_above_pickup_pose"
     test_state = ReadFromMongo()
 
     data = UserData()
     test_state.execute(data)
+    import pdb; pdb.set_trace()
+    

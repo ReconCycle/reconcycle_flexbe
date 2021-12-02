@@ -21,7 +21,6 @@ from reconcycle_flexbe_states.load_controller_service_client import LoadControll
 from reconcycle_flexbe_states.pipeline_vision_pose import VisionPoseData
 from reconcycle_flexbe_states.read_from_mongodb import ReadFromMongo
 from reconcycle_flexbe_states.set_cartesian_compliance_reconcycle import SetReconcycleCartesianCompliance
-from reconcycle_flexbe_states.show_image import ShowImage
 from reconcycle_flexbe_states.switch_controller_service_client import SwitchControllerProxyClient
 from reconcycle_flexbe_states.unload_controller_service_client import UnloadControllerProxyClient
 # Additional imports can be added inside the following tags
@@ -240,13 +239,6 @@ Opis:
 										transitions={'done': 'Read object TF'},
 										autonomy={'done': Autonomy.Off})
 
-			# x:572 y:17
-			OperatableStateMachine.add('Read object TF',
-										ReadTFCartLin(target_frame="hca_back_vision_table_zero", source_frame="panda_1/panda_1_link0"),
-										transitions={'continue': 'Read_above_table', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'offset': 'offset', 'rotation': 'rotation', 't2_data': 'tf_pickup_pose'})
-
 			# x:916 y:240
 			OperatableStateMachine.add('Read_above_table',
 										ReadFromMongo(),
@@ -261,12 +253,12 @@ Opis:
 										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Off},
 										remapping={'joints_data': 'mdb_above_table_pose', 'joint_values': 'joint_values'})
 
-			# x:855 y:45
-			OperatableStateMachine.add('Display Yolact',
-										ShowImage(topic="/vision_pipeline/image_color", blocking=True, clear=False),
-										transitions={'received': 'Read_above_table', 'unavailable': 'failed'},
-										autonomy={'received': Autonomy.Low, 'unavailable': Autonomy.Low},
-										remapping={'message': 'message'})
+			# x:572 y:17
+			OperatableStateMachine.add('Read object TF',
+										ReadTFCartLin(target_frame="hca_back_vision_table_zero", source_frame="panda_1/panda_1_link0", calib_frames=[None,None]),
+										transitions={'continue': 'Read_above_table', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'offset': 'offset', 'rotation': 'rotation', 't2_data': 'tf_pickup_pose'})
 
 
 		# x:214 y:382, x:206 y:267
