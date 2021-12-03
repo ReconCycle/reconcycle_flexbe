@@ -9,11 +9,9 @@
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
 from reconcycle_flexbe_states.CallAction_ForceAction import CallForceAction
-from reconcycle_flexbe_states.CallAction_JointTrapVel import CallJointTrap
+from reconcycle_flexbe_states.MoveToJoints import MoveToJoints
 from reconcycle_flexbe_states.load_controller_service_client import LoadControllerProxyClient
-from reconcycle_flexbe_states.read_from_mongodb import ReadFromMongo
 from reconcycle_flexbe_states.switch_controller_service_client import SwitchControllerProxyClient
-from reconcycle_flexbe_states.write_to_mongodb import WriteToMongo
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
 
@@ -62,10 +60,10 @@ class LeveringActionKalo15HCASM(Behavior):
 
 
 		with _state_machine:
-			# x:30 y:89
-			OperatableStateMachine.add('Load controllers',
-										LoadControllerProxyClient(desired_controller='joint_impedance_controller', robot_name=''),
-										transitions={'continue': 'Load controllers_2', 'failed': 'failed'},
+			# x:858 y:54
+			OperatableStateMachine.add('Switch to Cartesian',
+										SwitchControllerProxyClient(robot_name='', start_controller=['cartesian_impedance_controller_tum'], stop_controller=['joint_impedance_controller'], strictness=2),
+										transitions={'continue': 'Start force action', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
 			# x:29 y:177
@@ -74,19 +72,12 @@ class LeveringActionKalo15HCASM(Behavior):
 										transitions={'continue': 'Switch to joint controllers', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:647 y:38
-			OperatableStateMachine.add('Move to vice',
-										CallJointTrap(max_vel=1, max_acl=1, namespace=''),
-										transitions={'continue': 'Switch to Cartesian', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Off},
-										remapping={'joints_data': 'mdb_j_test', 'joint_values': 'joint_values'})
-
-			# x:433 y:37
-			OperatableStateMachine.add('Read_above_table',
-										ReadFromMongo(),
-										transitions={'continue': 'Move to vice', 'failed': 'failed'},
+			# x:370 y:144
+			OperatableStateMachine.add('Move to clamp',
+										MoveToJoints(joints=[0.973548,0.50085,-0.535146,-1.80296,-0.517136,1.74385,1.56292], max_vel=1, max_acl=1, namespace=''),
+										transitions={'continue': 'Move to clamp', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'entry_name': 'j_test_name', 'joints_data': 'mdb_j_test'})
+										remapping={'joint_values': 'joint_values'})
 
 			# x:855 y:486
 			OperatableStateMachine.add('Start force action',
@@ -95,24 +86,17 @@ class LeveringActionKalo15HCASM(Behavior):
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'success': 'success'})
 
-			# x:858 y:54
-			OperatableStateMachine.add('Switch to Cartesian',
-										SwitchControllerProxyClient(robot_name='', start_controller=['cartesian_impedance_controller_tum'], stop_controller=['joint_impedance_controller'], strictness=2),
-										transitions={'continue': 'Start force action', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
-
 			# x:20 y:272
 			OperatableStateMachine.add('Switch to joint controllers',
 										SwitchControllerProxyClient(robot_name='', start_controller=['joint_impedance_controller'], stop_controller=['cartesian_impedance_controller_tum'], strictness=2),
-										transitions={'continue': 'write', 'failed': 'failed'},
+										transitions={'continue': 'Move to clamp', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:228 y:35
-			OperatableStateMachine.add('write',
-										WriteToMongo(),
-										transitions={'continue': 'Read_above_table', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'entry_data': 'j_test', 'entry_name': 'j_test_name'})
+			# x:12 y:92
+			OperatableStateMachine.add('Load controllers',
+										LoadControllerProxyClient(desired_controller='joint_impedance_controller', robot_name=''),
+										transitions={'continue': 'Load controllers_2', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
 
 		return _state_machine
