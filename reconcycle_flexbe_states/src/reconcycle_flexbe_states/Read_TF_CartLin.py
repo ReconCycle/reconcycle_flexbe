@@ -19,12 +19,7 @@ class ReadTFCartLin(EventState):
 
     --	target_frame	string		 Transform to this frame
     --	source_frame	string		 Transform from this frame
-    --  calib_frames    list of strings  Names of two calibration frames;
-                                            transform the target_frame,
-                                            where the 1st calib frame is wrt
-                                            to the source_frame and the 2nd
-                                            calib frame is wrt to the current
-                                            unknown source frame
+
     >#  offset  list                     move to x,y,z position
     >#  rotation list                    rotate x,y,z in rad
 
@@ -34,7 +29,7 @@ class ReadTFCartLin(EventState):
     <= failed                            Failed
     '''
 
-    def __init__(self, target_frame, source_frame, calib_frames=[None, None]):
+    def __init__(self, target_frame, source_frame):
         rospy.loginfo('__init__ callback happened.')
         super(ReadTFCartLin, self).__init__(outcomes = ['continue', 'failed'], 
             input_keys = ['offset', 'rotation'], output_keys = ['t2_data'])
@@ -49,7 +44,6 @@ class ReadTFCartLin(EventState):
         # Copy parameters
         self.target_frame = target_frame
         self.source_frame = source_frame
-        self.calib_frames = calib_frames
 
     def on_enter(self, userdata):
         Logger.loginfo("Started reading TF (CartLin)...")
@@ -73,13 +67,6 @@ class ReadTFCartLin(EventState):
                 orientation=Quaternion(rot[0], rot[1], rot[2], rot[3])))
             t_pose_target = tf2_geometry_msgs.do_transform_pose(offset_z, t_pose)
 
-            if not(None in self.calib_frames):
-                msg_store = MessageStoreProxy()
-                calib_db = msg_store.query_named("emo/j_holder_up_pose", Pose._type)
-                calib_tf = self.buffer.lookup_transform(self.source_frame, 
-                    self.calib_frames[0], rospy.Time(0))
-                import pdb; pdb.set_trace()
-
             Logger.loginfo("source_frame: {}".format(self.source_frame))
             Logger.loginfo("target_frame: {}".format(self.target_frame))
             Logger.loginfo("t_pose data: {}".format(t_pose))
@@ -93,9 +80,6 @@ class ReadTFCartLin(EventState):
              self.status = 'failed'
 
 	return self.status 
-
-
-
 
     def execute(self, userdata):
         return self.status
@@ -113,5 +97,5 @@ if __name__ == '__main__':
          offset = [0,0,0]
          rotation = [0,0,0]
      userdata = UserData
-     test_state = ReadTFCartLin("vision_table_calib", "panda_1/panda_1_link0", ["vision_table_calib", "vision_table_zero"])
+     test_state = ReadTFCartLin("vision_table_calib", "panda_1/panda_1_link0")
      test_state.on_enter(userdata)

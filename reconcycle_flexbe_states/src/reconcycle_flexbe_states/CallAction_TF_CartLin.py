@@ -78,10 +78,6 @@ class CallActionTFCartLin(EventState):
             position = self.H[:3, -1]
             orientation = qt.as_float_array(qt.from_rotation_matrix(self.H))[[1,2,3,0]]
 
-            #goal = robot_module_msgs.msg.CartLinTaskActionGoal() 
-            #goal.goal.target_pose=[userdata.t2_data]
-            #goal.goal.desired_travel_time=self.exe_time
-
             eulers = qt.as_euler_angles(qt.from_float_array(orientation[[3,0,1,2]]))
             eulers = np.rad2deg(eulers)
             Logger.loginfo("Eulers are: {}".format(eulers)) 
@@ -118,7 +114,6 @@ class CallActionTFCartLin(EventState):
         goal.desired_travel_time = self.exe_time 
 
         Logger.loginfo("Goal created: {}".format(goal))
-
             
         try:
             # send goal and wait for result
@@ -150,4 +145,4 @@ class CallActionTFCartLin(EventState):
 if __name__ == '__main__':
      print("Testing standalone")
      rospy.init_node('test_node')
-     test_state=CallActionTFCartLin("test",3)
+     test_state=CallActionTFCartLin("test", 3)
