@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Qundis HCA protocol">
+
+	<executable package_path="reconcycle_flexbe_behaviors.qundis_hca_protocol_sm" class="QundisHCAprotocolSM" />
+	<tagstring>qb_hand, vise, cartesian_move, reconcycle</tagstring>
+	<author>Rok Pahic, Boris Kuster, Mihael Simonic, Matija Mavsar</author>
+	<date>@author: Rok Pahic, Boris Kuster, Mihael Simonic, Matija Mavsar</date>
+	<description>
+		Disassembly protocol for the new HCA (Qundis):
+
+- pickup from table using vision
+- place into vise
+- close the vise
+- use levering action to remove PCB
+- rotate vise to make PCB fall out
+- pickup the HCA housing
+- place it back on the table
+	</description>
+
+
+	<!-- Contained Behaviors -->
+	<contains name="Change tool on robot" />
+	<contains name="Pick plastic from clamp" />
+	<contains name="D5_2" />
+	<contains name="Cutting PCB" />
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="numeric" name="Kp" default="2000" label="Kp" hint="Stiffness of positional d.o.f">
+			<min value="0" />
+			<max value="3000" />
+		</param>
+
+		<param type="numeric" name="Kr" default="30" label="Kr" hint="Stiffness of rotational d.o.f">
+			<min value="0" />
+			<max value="50" />
+		</param>
+
+		<param type="numeric" name="max_acl" default="3" label="max_acl" hint="Sets the max_acl">
+			<min value="0.5" />
+			<max value="5" />
+		</param>
+
+		<param type="numeric" name="max_vel" default="1" label="max_vel" hint="Sets the max_vel">
+			<min value="0.5" />
+			<max value="3" />
+		</param>
+
+	</params>
+
+
+</behavior>
