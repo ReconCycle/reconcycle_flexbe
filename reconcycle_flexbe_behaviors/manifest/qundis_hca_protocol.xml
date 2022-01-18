@@ -14,8 +14,9 @@
 - close the vise
 - use levering action to remove PCB
 - rotate vise to make PCB fall out
-- pickup the HCA housing
-- place it back on the table
+- remove the HCA housing
+- move PCB to cutter 
+- cut and remove the battery
 	</description>
 
 

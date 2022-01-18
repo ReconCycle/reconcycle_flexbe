@@ -45,8 +45,9 @@ class QundisHCAprotocolSM(Behavior):
 - close the vise
 - use levering action to remove PCB
 - rotate vise to make PCB fall out
-- pickup the HCA housing
-- place it back on the table
+- remove the HCA housing
+- move PCB to cutter 
+- cut and remove the battery
 	'''
 
 
@@ -61,8 +62,8 @@ class QundisHCAprotocolSM(Behavior):
 		self.add_parameter('max_vel', 1)
 
 		# references to used behaviors
-		self.add_behavior(ChangetoolonrobotSM, 'Change tool and drop HCA plastic/Change tool on robot')
-		self.add_behavior(PickplasticfromclampSM, 'Change tool and drop HCA plastic/Plastic Drop/Pick plastic from clamp')
+		self.add_behavior(ChangetoolonrobotSM, 'Change tool and remove HCA housing/Change tool on robot')
+		self.add_behavior(PickplasticfromclampSM, 'Change tool and remove HCA housing/Remove housing/Pick plastic from clamp')
 		self.add_behavior(D5_2SM, 'D5_2')
 		self.add_behavior(CuttingPCBSM, 'Move PCB to cutter and put new HCA into vise/Cutting PCB')
 
@@ -647,9 +648,9 @@ class QundisHCAprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_throw_pcb_from_plastic_17 = OperatableStateMachine(outcomes=['continue', 'failed'], input_keys=['FA', 'TR'])
+		_sm_throw_pcb_from_vise_17 = OperatableStateMachine(outcomes=['continue', 'failed'], input_keys=['FA', 'TR'])
 
-		with _sm_throw_pcb_from_plastic_17:
+		with _sm_throw_pcb_from_vise_17:
 			# x:314 y:6
 			OperatableStateMachine.add('Pull in tray',
 										ActivateRaspiDigitalOuput(service_name=self.tray_service_name),
@@ -705,41 +706,41 @@ class QundisHCAprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_plastic_drop_18 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['TR', 'FA'])
+		_sm_remove_housing_18 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['TR', 'FA'])
 
-		with _sm_plastic_drop_18:
+		with _sm_remove_housing_18:
 			# x:65 y:119
-			OperatableStateMachine.add('Throw PCB from plastic',
-										_sm_throw_pcb_from_plastic_17,
+			OperatableStateMachine.add('Throw PCB from vise',
+										_sm_throw_pcb_from_vise_17,
 										transitions={'continue': 'Pick plastic from clamp', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'FA': 'FA', 'TR': 'TR'})
 
 			# x:243 y:238
 			OperatableStateMachine.add('Pick plastic from clamp',
-										self.use_behavior(PickplasticfromclampSM, 'Change tool and drop HCA plastic/Plastic Drop/Pick plastic from clamp',
+										self.use_behavior(PickplasticfromclampSM, 'Change tool and remove HCA housing/Remove housing/Pick plastic from clamp',
 											default_keys=['clamp_waiting_location_name','closed_hand_clamp','clamp_pick_location_name','clamp_above_location_name']),
 										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
 
 		# x:30 y:365, x:130 y:365, x:230 y:365, x:330 y:365
-		_sm_change_tool_and_drop_hca_plastic_19 = ConcurrencyContainer(outcomes=['finished', 'failed'], input_keys=['true', 'false'], conditions=[
-										('finished', [('Change tool on robot', 'finished'), ('Plastic Drop', 'finished')]),
-										('failed', [('Change tool on robot', 'failed'), ('Plastic Drop', 'failed')])
+		_sm_change_tool_and_remove_hca_housing_19 = ConcurrencyContainer(outcomes=['finished', 'failed'], input_keys=['true', 'false'], conditions=[
+										('finished', [('Change tool on robot', 'finished'), ('Remove housing', 'finished')]),
+										('failed', [('Change tool on robot', 'failed'), ('Remove housing', 'failed')])
 										])
 
-		with _sm_change_tool_and_drop_hca_plastic_19:
+		with _sm_change_tool_and_remove_hca_housing_19:
 			# x:30 y:40
 			OperatableStateMachine.add('Change tool on robot',
-										self.use_behavior(ChangetoolonrobotSM, 'Change tool and drop HCA plastic/Change tool on robot',
+										self.use_behavior(ChangetoolonrobotSM, 'Change tool and remove HCA housing/Change tool on robot',
 											default_keys=['tool_drop_location_name','tool_take_location_name','before_drop_location_name','after_take_location_name','open_air_block']),
 										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
 			# x:307 y:60
-			OperatableStateMachine.add('Plastic Drop',
-										_sm_plastic_drop_18,
+			OperatableStateMachine.add('Remove housing',
+										_sm_remove_housing_18,
 										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'TR': 'true', 'FA': 'false'})
@@ -891,8 +892,8 @@ class QundisHCAprotocolSM(Behavior):
 										remapping={'true': 'true', 'open_pos': 'release_pos', 'value': 'true', 'false': 'false', 'j_init_pose': 'j_init_pose'})
 
 			# x:748 y:167
-			OperatableStateMachine.add('Change tool and drop HCA plastic',
-										_sm_change_tool_and_drop_hca_plastic_19,
+			OperatableStateMachine.add('Change tool and remove HCA housing',
+										_sm_change_tool_and_remove_hca_housing_19,
 										transitions={'finished': 'Move PCB to cutter and put new HCA into vise', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'true': 'true', 'false': 'false'})
@@ -906,7 +907,7 @@ class QundisHCAprotocolSM(Behavior):
 			# x:796 y:37
 			OperatableStateMachine.add('Levering action',
 										_sm_levering_action_16,
-										transitions={'finished': 'Change tool and drop HCA plastic', 'failed': 'failed'},
+										transitions={'finished': 'Change tool and remove HCA housing', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'offset': 'offset', 'rotation': 'rotation', 'safe_position_name': 'safe_position_name'})
 
