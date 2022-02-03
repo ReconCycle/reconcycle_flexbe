@@ -255,7 +255,7 @@ Opis:
 
 			# x:572 y:17
 			OperatableStateMachine.add('Read object TF',
-										ReadTFCartLin(target_frame="hca_back_vision_table_zero", source_frame="panda_1/panda_1_link0", calib_frames=[None,None]),
+										ReadTFCartLin(target_frame="hca_back_vision_table_zero", source_frame="panda_1/panda_1_link0"),
 										transitions={'continue': 'Read_above_table', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'offset': 'offset', 'rotation': 'rotation', 't2_data': 'tf_pickup_pose'})

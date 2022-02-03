@@ -50,13 +50,13 @@ class CallActionTFCartLin(EventState):
         Logger.loginfo("Started sending goal...")
         # create goal
 
-        position = np.array([userdata.t2_data[0].position.x,
-                             userdata.t2_data[0].position.y,
-                             userdata.t2_data[0].position.z])
-        orientation = np.array([userdata.t2_data[0].orientation.x,
-                                userdata.t2_data[0].orientation.y,
-                                userdata.t2_data[0].orientation.z,
-                                userdata.t2_data[0].orientation.w])
+        position = np.array([userdata.t2_data.pose.position.x,
+                             userdata.t2_data.pose.position.y,
+                             userdata.t2_data.pose.position.z])
+        orientation = np.array([userdata.t2_data.pose.orientation.x,
+                                userdata.t2_data.pose.orientation.y,
+                                userdata.t2_data.pose.orientation.z,
+                                userdata.t2_data.pose.orientation.w])
         old_position = position
         old_orientation = orientation
         
