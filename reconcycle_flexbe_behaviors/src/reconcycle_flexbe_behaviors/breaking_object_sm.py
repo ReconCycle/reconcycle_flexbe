@@ -9,7 +9,7 @@
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
 from reconcycle_flexbe_states.ExecuteJointDMPfromMongoDB import ExeJointDMP
-from reconcycle_flexbe_states.call_joint_trap_vel_action_server import CallJointTrap
+from reconcycle_flexbe_states.CallAction_JointTrapVel import CallJointTrap
 from reconcycle_flexbe_states.read_from_mongodb import ReadFromMongo
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]

@@ -2,11 +2,9 @@
 
 import rospy
 from geometry_msgs.msg import Pose
-#import tf2_geometry_msgs
 from flexbe_core import EventState, Logger
-import robot_module_msgs.msg
-import geometry_msgs.msg
-import actionlib
+from flexbe_core.proxy import ProxyActionClient
+from robot_module_msgs.msg import CartLinTaskAction, CartLinTaskGoal
 import tf.transformations as tft
 import numpy as np
 import quaternion as qt
@@ -42,7 +40,7 @@ class CallActionTFCartLin(EventState):
         self.R = np.eye(4)
         # Declaring topic and client
         self._topic = self.ns + '/cartesian_impedance_controller/cart_lin_as'
-        self._client = actionlib.SimpleActionClient(self._topic, robot_module_msgs.msg.CartLinTaskAction)
+        self._client = ProxyActionClient({self._topic: CartLinTaskAction})
         
         self.result = ''
 
@@ -50,21 +48,24 @@ class CallActionTFCartLin(EventState):
         Logger.loginfo("Started sending goal...")
         # create goal
 
-        position = np.array([userdata.t2_data.pose.position.x,
-                             userdata.t2_data.pose.position.y,
-                             userdata.t2_data.pose.position.z])
-        orientation = np.array([userdata.t2_data.pose.orientation.x,
-                                userdata.t2_data.pose.orientation.y,
-                                userdata.t2_data.pose.orientation.z,
-                                userdata.t2_data.pose.orientation.w])
+        position = np.array([userdata.t2_data[0].position.x,
+                             userdata.t2_data[0].position.y,
+                             userdata.t2_data[0].position.z])
+        orientation = np.array([userdata.t2_data[0].orientation.x,
+                                userdata.t2_data[0].orientation.y,
+                                userdata.t2_data[0].orientation.z,
+                                userdata.t2_data[0].orientation.w])
         old_position = position
         old_orientation = orientation
         
+        Logger.loginfo("Offset: {}".format(self.offset))
+
         ###### GLOBAL OFFSET
         if self.offset_type == 'global':
             position = position + self.offset[0:3]
             orientation = (qt.from_float_array(orientation[[3,0,1,2]]) * 
                 qt.from_euler_angles(np.deg2rad(self.offset[3:])))
+            orientation = qt.as_float_array(orientation)[[1,2,3,0]]
     
         ###### LOCAL OFFSET
         elif self.offset_type == 'local':
@@ -100,8 +101,8 @@ class CallActionTFCartLin(EventState):
             #     else:
             #         Logger.loginfo("Eulers are fine!") 
 
-        goal = robot_module_msgs.msg.CartLinTaskGoal() 
-        pose = geometry_msgs.msg.Pose()
+        goal = CartLinTaskGoal() 
+        pose = Pose()
         pose.position.x = position[0]
         pose.position.y = position[1]
         pose.position.z = position[2]
@@ -116,31 +117,33 @@ class CallActionTFCartLin(EventState):
         Logger.loginfo("Goal created: {}".format(goal))
             
         try:
-            # send goal and wait for result
-            self._client.send_goal(goal)
+            self._client.send_goal(self._topic, goal)
             Logger.loginfo("Goal sent: {}".format(str(goal)))
-            self._client.wait_for_result()
-            
         except Exception as e:
-            print(e)
-            Logger.loginfo("No result or server is not active!")
-            self.result=self._client.get_result()
-            Logger.loginfo("Server reply: \n {}".format(str(self.result)))  
-            return 'failed'        
-        
-        # result from server
-        self.result = self._client.get_result()
-        Logger.loginfo("Server reply: \n {}".format(str(self.result)))    
-        
+            Logger.loginfo('Failed to send the goal command:\n{}'.format(str(e)))
+            self._error = True
+            return 'failed'       
     
     def execute(self, userdata):
-        userdata.t2_out = self.result      
-    
-        return 'continue'        
+        try:
+            if self._client.has_result(self._topic):
+                self.result = self._client.get_result(self._topic) 
+                return 'continue'
+            else:
+                feedback = self._client.get_feedback(self._topic)
+        except Exception as e:
+            Logger.loginfo("No result or server is not active!")
+            return 'failed'
 
     def on_exit(self, userdata):
-        Logger.loginfo('Exiting call (CartLin).')
-        return 'continue'
+        userdata.t2_out = self.result
+
+        if not self._client.get_result(self._topic):
+            self._client.cancel(self._topic)
+            Logger.loginfo('Cancelled active action goal.')
+            
+        Logger.loginfo('Finished sending CartLinTaskGoal.')
+
 
 if __name__ == '__main__':
      print("Testing standalone")

@@ -15,5 +15,29 @@
 	<!-- Contained Behaviors -->
 
 	<!-- Available Parameters -->
+	<params>
+
+		<param type="numeric" name="Kp" default="3000" label="Kp" hint="Sets the Kp">
+			<min value="0" />
+			<max value="5000" />
+		</param>
+
+		<param type="numeric" name="Kr" default="70" label="Kr" hint="Sets the Kr">
+			<min value="0" />
+			<max value="100" />
+		</param>
+
+		<param type="numeric" name="max_vel" default="3" label="max_vel" hint="Sets the max_vel">
+			<min value="0" />
+			<max value="3" />
+		</param>
+
+		<param type="numeric" name="max_acc" default="3" label="max_acc" hint="Sets the max_acc">
+			<min value="0" />
+			<max value="3" />
+		</param>
+
+	</params>
+
 
 </behavior>

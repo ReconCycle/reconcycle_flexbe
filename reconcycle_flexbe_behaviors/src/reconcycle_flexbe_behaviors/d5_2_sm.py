@@ -16,7 +16,7 @@ from reconcycle_flexbe_behaviors.pick_plastic_from_clamp_sm import Pickplasticfr
 from reconcycle_flexbe_behaviors.putt_object_in_clamp_sm import PuttobjectinclampSM
 from reconcycle_flexbe_states.MoveSoftHand import MoveSoftHand
 from reconcycle_flexbe_states.avtivate_raspi_output import ActivateRaspiDigitalOuput
-from reconcycle_flexbe_states.call_joint_trap_vel_action_server import CallJointTrap
+from reconcycle_flexbe_states.CallAction_JointTrapVel import CallJointTrap
 from reconcycle_flexbe_states.read_from_mongodb import ReadFromMongo
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]

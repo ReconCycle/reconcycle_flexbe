@@ -83,7 +83,7 @@ class CallForceAction(EventState):
                 return 'continue'
             else:
                 feedback = self._client.get_feedback(self._topic)
-                Logger.loginfo("{}".format(feedback))
+                # Logger.loginfo("{}".format(feedback))
                 
         except Exception as e:
             Logger.loginfo("No result or server is not active!")

@@ -31,7 +31,7 @@ class CallJointTrap(EventState):
                                             output_keys = ['joint_values'])
 
         self._namespace = namespace
-        self._topic = self._namespace + '/joint_impedance_controller/move_joint_trap'
+        self._topic = "/" + str(self._namespace) + "/joint_impedance_controller/move_joint_trap"
         self._client = ProxyActionClient({ self._topic: JointTrapVelAction})
 
         self.max_vel = max_vel

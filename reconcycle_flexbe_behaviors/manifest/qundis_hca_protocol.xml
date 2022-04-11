@@ -49,6 +49,10 @@
 			<max value="3" />
 		</param>
 
+		<param type="text" name="namespace" default="" label="namespace" hint="Sets the namespace" />
+
+		<param type="text" name="tray_service_name" default="" label="tray_service_name" hint="Sets the tray_service_name" />
+
 	</params>
 
 

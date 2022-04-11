@@ -37,7 +37,6 @@ class ReadTFCartLin(EventState):
         # Initialize the TF listener
         self.buffer = tf2_ros.Buffer()
         self.listener = tf2_ros.TransformListener(self.buffer)
-        self.status = 'continue'
 
         rospy.sleep(0.2)
 
@@ -55,39 +54,34 @@ class ReadTFCartLin(EventState):
                 raise ValueError('No target and source data!')
         except Exception as e:
             Logger.loginfo('Target or source frame not in Pose() structure!')
-            self.status = 'failed'
+            return 'failed'
         
         off = userdata.offset
         rot = userdata.rotation
-        try:
-            t_pose = self.buffer.lookup_transform(self.source_frame, self.target_frame, rospy.Time(0))
+        rot = tf.transformations.quaternion_from_euler(rot[0], rot[1], rot[2])
+        self.offset = PoseStamped(pose=Pose(position=Point(off[0], off[1], off[2]), 
+            orientation=Quaternion(rot[0], rot[1], rot[2], rot[3])))
 
-            rot = tf.transformations.quaternion_from_euler(rot[0], rot[1], rot[2])
-            offset_z = PoseStamped(pose=Pose(position=Point(off[0], off[1], off[2]), 
-                orientation=Quaternion(rot[0], rot[1], rot[2], rot[3])))
-            t_pose_target = tf2_geometry_msgs.do_transform_pose(offset_z, t_pose)
+    def execute(self, userdata):
+        try:
+            t_pose = self.buffer.lookup_transform(self.source_frame, self.target_frame, 
+                rospy.Time(0), rospy.Duration(5))
+            t_pose_target = tf2_geometry_msgs.do_transform_pose(self.offset, t_pose)
 
             Logger.loginfo("source_frame: {}".format(self.source_frame))
             Logger.loginfo("target_frame: {}".format(self.target_frame))
             Logger.loginfo("t_pose data: {}".format(t_pose))
-            Logger.loginfo("offset_z: {}".format(offset_z))
+            Logger.loginfo("offset: {}".format(self.offset))
             Logger.loginfo("target_pose: {}".format(t_pose_target))
             userdata.t2_data = [t_pose_target.pose]
-            self.status = 'continue'
+            return 'continue'
         except (tf2_ros.TransformException, tf2_ros.ConnectivityException) as exception:
-             Logger.loginfo("Failed to execute")
+             Logger.loginfo("Failed to get TF in time!")
              Logger.loginfo("{}".format(exception))
-             self.status = 'failed'
-
-	return self.status 
-
-    def execute(self, userdata):
-        return self.status
+             return 'failed'
 
     def on_exit(self, userdata):
         Logger.loginfo('Exiting read TF (CartLin).')
-        
-        return self.status
 
 
 if __name__ == '__main__':
