@@ -23,18 +23,21 @@ class CallActionTFCartLin(EventState):
     <= failed                           Failed
     '''
 
-    def __init__(self, namespace, exe_time, offset=0, offset_type='local', limit_rotations=False):
+    def __init__(self, namespace, exe_time, local_offset=0, global_pos_offset=0, limit_rotations=False, soft_hand_offset=None):
         super(CallActionTFCartLin, self).__init__(outcomes = ['continue', 'failed'], input_keys = ['t2_data'], output_keys = ['t2_out'])
         
         rospy.loginfo('__init__ callback happened.')   
         
         self.exe_time = exe_time
         self.ns = namespace
-        if offset == 0:
-            offset = [0, 0, 0, 0, 0, 0]
-        self.offset = np.array(offset)
-        self.offset_type = offset_type
+        if local_offset == 0:
+            local_offset = [0, 0, 0, 0, 0, 0]
+        if global_pos_offset == 0:
+            global_pos_offset = [0, 0, 0]
+        self.local_offset = np.array(local_offset)
+        self.global_pos_offset = np.array(global_pos_offset)
         self.limit_rotations = limit_rotations
+        self.soft_hand_offset = soft_hand_offset
         self.H = np.zeros((4, 4))
         self.H[-1, -1] = 1.0
         self.R = np.eye(4)
@@ -58,48 +61,61 @@ class CallActionTFCartLin(EventState):
         old_position = position
         old_orientation = orientation
         
-        Logger.loginfo("Offset: {}".format(self.offset))
-
-        ###### GLOBAL OFFSET
-        if self.offset_type == 'global':
-            position = position + self.offset[0:3]
-            orientation = (qt.from_float_array(orientation[[3,0,1,2]]) * 
-                qt.from_euler_angles(np.deg2rad(self.offset[3:])))
-            orientation = qt.as_float_array(orientation)[[1,2,3,0]]
+        Logger.loginfo("Local offset: {}".format(self.local_offset))
+        Logger.loginfo("Global offset: {}".format(self.global_pos_offset))
     
         ###### LOCAL OFFSET
-        elif self.offset_type == 'local':
+        orientation = (qt.from_float_array(old_orientation[[3,0,1,2]]) * 
+            qt.from_euler_angles(np.deg2rad(self.local_offset[3:])))
+        self.R[:3, -1] = self.local_offset[:3]
+        
+        if self.soft_hand_offset is not None:
+            self.soft_hand_offset = np.array(self.soft_hand_offset)
+            soft_hand_rot = np.array(self.soft_hand_offset[1])
+            orientation = orientation * qt.from_float_array(soft_hand_rot[[3,0,1,2]])
+            self.R[:3, -1] = self.R[:3, -1] - self.soft_hand_offset[0]
+        
+        eulers = qt.as_euler_angles(orientation)
+        Logger.loginfo("Local eulers: {}".format(eulers))
 
-            orientation = (qt.from_float_array(old_orientation[[3,0,1,2]]) * 
-                qt.from_euler_angles(np.deg2rad(self.offset[3:])))
-            self.R[:3, -1] = self.offset[:3]
-            self.H[:3, :3] = qt.as_rotation_matrix(orientation)
-            self.H[:3, -1] = old_position
-            self.H = self.H.dot(self.R)
-            position = self.H[:3, -1]
-            orientation = qt.as_float_array(qt.from_rotation_matrix(self.H))[[1,2,3,0]]
+        # if eulers[2] > 0.3:
+        #     eulers[2] -= 3.14
+        #     orientation = qt.from_euler_angles(eulers)
 
-            eulers = qt.as_euler_angles(qt.from_float_array(orientation[[3,0,1,2]]))
-            eulers = np.rad2deg(eulers)
-            Logger.loginfo("Eulers are: {}".format(eulers)) 
+        self.H[:3, :3] = qt.as_rotation_matrix(orientation)
+        self.H[:3, -1] = old_position
+        self.H = self.H.dot(self.R)
+        position = self.H[:3, -1]
+        orientation = qt.as_float_array(qt.from_rotation_matrix(self.H))[[1,2,3,0]]
+
+        eulers = qt.as_euler_angles(qt.from_float_array(orientation[[3,0,1,2]]))
+        eulers = np.rad2deg(eulers)
+        Logger.loginfo("Eulers are: {}".format(eulers)) 
+
+        ###### GLOBAL OFFSET
+        position = position + self.global_pos_offset
+
+        # orientation = (qt.from_float_array(orientation[[3,0,1,2]]) * 
+        #     qt.from_euler_angles(np.deg2rad(self.offset[3:])))
+        # orientation = qt.as_float_array(orientation)[[1,2,3,0]]
     
-            # # Fix rotation if required (NOT REQUIRED CURRENTLY)
-            # if self.limit_rotations:
-            #     if (eulers[2] < -30 or eulers[2] > 70):
-            #         self.offset[-1] += 180
-            #         orientation = (qt.from_float_array(old_orientation[[3,0,1,2]]) * 
-            #             qt.from_euler_angles(np.deg2rad(self.offset[3:])))
-            #         self.R[:3, -1] = self.offset[:3]
-            #         self.H[:3, :3] = qt.as_rotation_matrix(orientation)
-            #         self.H[:3, -1] = old_position
-            #         self.H = self.H.dot(self.R)
-            #         position = self.H[:3, -1]
-            #         orientation = qt.as_float_array(qt.from_rotation_matrix(self.H))[[1,2,3,0]]
-            #         eulers = qt.as_euler_angles(qt.from_float_array(orientation[[3,0,1,2]]))
-            #         eulers = np.rad2deg(eulers)
-            #         Logger.loginfo("Fixed eulers are: {}".format(eulers)) 
-            #     else:
-            #         Logger.loginfo("Eulers are fine!") 
+        # # Fix rotation if required (NOT REQUIRED CURRENTLY)
+        # if self.limit_rotations:
+        #     if (eulers[2] < -30 or eulers[2] > 70):
+        #         self.offset[-1] += 180
+        #         orientation = (qt.from_float_array(old_orientation[[3,0,1,2]]) * 
+        #             qt.from_euler_angles(np.deg2rad(self.offset[3:])))
+        #         self.R[:3, -1] = self.offset[:3]
+        #         self.H[:3, :3] = qt.as_rotation_matrix(orientation)
+        #         self.H[:3, -1] = old_position
+        #         self.H = self.H.dot(self.R)
+        #         position = self.H[:3, -1]
+        #         orientation = qt.as_float_array(qt.from_rotation_matrix(self.H))[[1,2,3,0]]
+        #         eulers = qt.as_euler_angles(qt.from_float_array(orientation[[3,0,1,2]]))
+        #         eulers = np.rad2deg(eulers)
+        #         Logger.loginfo("Fixed eulers are: {}".format(eulers)) 
+        #     else:
+        #         Logger.loginfo("Eulers are fine!") 
 
         goal = CartLinTaskGoal() 
         pose = Pose()

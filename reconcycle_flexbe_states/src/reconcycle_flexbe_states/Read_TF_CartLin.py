@@ -65,7 +65,7 @@ class ReadTFCartLin(EventState):
     def execute(self, userdata):
         try:
             t_pose = self.buffer.lookup_transform(self.source_frame, self.target_frame, 
-                rospy.Time(0), rospy.Duration(5))
+                rospy.Time(0), rospy.Duration(10))
             t_pose_target = tf2_geometry_msgs.do_transform_pose(self.offset, t_pose)
 
             Logger.loginfo("source_frame: {}".format(self.source_frame))

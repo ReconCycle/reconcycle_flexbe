@@ -11,13 +11,13 @@ from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyC
 from flexbe_states.wait_state import WaitState
 from reconcycle_flexbe_behaviors.change_tool_on_robot_sm import ChangetoolonrobotSM
 from reconcycle_flexbe_behaviors.cutting_pcb_sm import CuttingPCBSM
-from reconcycle_flexbe_behaviors.d5_2_sm import D5_2SM
 from reconcycle_flexbe_behaviors.pick_plastic_from_clamp_sm import PickplasticfromclampSM
 from reconcycle_flexbe_states.CallAction_ForceAction import CallForceAction
 from reconcycle_flexbe_states.CallAction_JointTrapVel import CallJointTrap
 from reconcycle_flexbe_states.CallAction_TF_CartLin import CallActionTFCartLin
 from reconcycle_flexbe_states.ErrorRecoveryProxy import FrankaErrorRecoveryActionProxy
 from reconcycle_flexbe_states.MoveSoftHand import MoveSoftHand
+from reconcycle_flexbe_states.ReadNextVisionAction import ReadNextVisionAction
 from reconcycle_flexbe_states.Read_TF_CartLin import ReadTFCartLin
 from reconcycle_flexbe_states.active_controller_service_client import ActiveControllerProxyClient
 from reconcycle_flexbe_states.avtivate_raspi_output import ActivateRaspiDigitalOuput
@@ -64,10 +64,9 @@ class QundisHCAprotocolSM(Behavior):
 		self.add_parameter('tray_service_name', '')
 
 		# references to used behaviors
-		self.add_behavior(ChangetoolonrobotSM, 'Change tool and remove HCA housing/Change tool on robot')
-		self.add_behavior(PickplasticfromclampSM, 'Change tool and remove HCA housing/Remove housing/Pick plastic from clamp')
-		self.add_behavior(D5_2SM, 'D5_2')
-		self.add_behavior(CuttingPCBSM, 'Move PCB to cutter and put new HCA into vise/Cutting PCB')
+		self.add_behavior(ChangetoolonrobotSM, 'Action selection/Change tool and remove HCA housing/Change tool on robot')
+		self.add_behavior(PickplasticfromclampSM, 'Action selection/Change tool and remove HCA housing/Remove housing/Pick plastic from clamp')
+		self.add_behavior(CuttingPCBSM, 'Action selection/Move PCB to cutter and put new HCA into vise/Cutting PCB')
 
 		# Additional initialization code can be added inside the following tags
 		# [MANUAL_INIT]
@@ -79,7 +78,7 @@ class QundisHCAprotocolSM(Behavior):
 
 
 	def create(self):
-		# x:515 y:387, x:582 y:180
+		# x:515 y:387, x:495 y:284
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
 		_state_machine.userdata.grab_pos = [0.8]
 		_state_machine.userdata.true = True
@@ -106,10 +105,146 @@ class QundisHCAprotocolSM(Behavior):
 		
 		# [/MANUAL_CREATE]
 
-		# x:30 y:365, x:130 y:365
-		_sm_push_pin_out_0 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['j_push_pose', 'offset', 'rotation'])
+		# x:30 y:365, x:162 y:464
+		_sm_initialize_holder_and_slider_0 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['false', 'true', 'value'])
 
-		with _sm_push_pin_out_0:
+		with _sm_initialize_holder_and_slider_0:
+			# x:30 y:51
+			OperatableStateMachine.add('Open pneumatic block',
+										ActivateRaspiDigitalOuput(service_name="/obr_block2_ON"),
+										transitions={'continue': 'Move slider back', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Off},
+										remapping={'value': 'true', 'success': 'success'})
+
+			# x:410 y:338
+			OperatableStateMachine.add('Move slider to front',
+										ActivateRaspiDigitalOuput(service_name="/move_slide"),
+										transitions={'continue': 'Open holder', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'value': 'value', 'success': 'success'})
+
+			# x:388 y:442
+			OperatableStateMachine.add('Open holder',
+										ActivateRaspiDigitalOuput(service_name="/obr_activate"),
+										transitions={'continue': 'continue', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'value': 'false', 'success': 'success'})
+
+			# x:426 y:133
+			OperatableStateMachine.add('Rotate holder up',
+										ActivateRaspiDigitalOuput(service_name="/obr_rotate"),
+										transitions={'continue': 'Wait again', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'value': 'false', 'success': 'success'})
+
+			# x:476 y:35
+			OperatableStateMachine.add('Wait',
+										WaitState(wait_time=1),
+										transitions={'done': 'Rotate holder up'},
+										autonomy={'done': Autonomy.Off})
+
+			# x:459 y:234
+			OperatableStateMachine.add('Wait again',
+										WaitState(wait_time=1),
+										transitions={'done': 'Move slider to front'},
+										autonomy={'done': Autonomy.Off})
+
+			# x:263 y:41
+			OperatableStateMachine.add('Move slider back',
+										ActivateRaspiDigitalOuput(service_name="/move_slide"),
+										transitions={'continue': 'Wait', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'value': 'false', 'success': 'success'})
+
+
+		# x:346 y:189, x:314 y:342
+		_sm_initalize_controllers_1 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['j_init_pose'])
+
+		with _sm_initalize_controllers_1:
+			# x:55 y:38
+			OperatableStateMachine.add('Load Cartesian controllers',
+										LoadControllerProxyClient(desired_controller="cartesian_impedance_controller_tum", robot_name="panda_1"),
+										transitions={'continue': 'Load joint controllers', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:273 y:37
+			OperatableStateMachine.add('Load joint controllers',
+										LoadControllerProxyClient(desired_controller="joint_impedance_controller", robot_name="panda_1"),
+										transitions={'continue': 'Error recovery', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:755 y:231
+			OperatableStateMachine.add('Move to initial position',
+										CallJointTrap(max_vel=self.max_vel, max_acl=self.max_acl, namespace='panda_1'),
+										transitions={'continue': 'continue', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'joints_data': 'mdb_init_pose', 'joint_values': 'joint_values'})
+
+			# x:750 y:139
+			OperatableStateMachine.add('Read initial joint position',
+										ReadFromMongo(),
+										transitions={'continue': 'Move to initial position', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'entry_name': 'j_init_pose', 'joints_data': 'mdb_init_pose'})
+
+			# x:741 y:34
+			OperatableStateMachine.add('Switch to joint controllers',
+										SwitchControllerProxyClient(robot_name="panda_1", start_controller=["joint_impedance_controller"], stop_controller=["cartesian_impedance_controller_tum"], strictness=1),
+										transitions={'continue': 'continue', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:500 y:35
+			OperatableStateMachine.add('Error recovery',
+										FrankaErrorRecoveryActionProxy(robot_name="panda_1"),
+										transitions={'continue': 'Switch to joint controllers', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
+
+
+		# x:30 y:365, x:263 y:159, x:230 y:365, x:330 y:365
+		_sm_concurrent_init_2 = ConcurrencyContainer(outcomes=['failed', 'continue'], input_keys=['false', 'true', 'value', 'j_init_pose', 'open_pos'], conditions=[
+										('continue', [('Initialize holder and slider', 'continue'), ('Initalize controllers', 'continue'), ('Open SoftHand', 'continue')]),
+										('failed', [('Initalize controllers', 'failed'), ('Initialize holder and slider', 'failed'), ('Open SoftHand', 'failed')])
+										])
+
+		with _sm_concurrent_init_2:
+			# x:77 y:42
+			OperatableStateMachine.add('Initialize holder and slider',
+										_sm_initialize_holder_and_slider_0,
+										transitions={'failed': 'failed', 'continue': 'continue'},
+										autonomy={'failed': Autonomy.Inherit, 'continue': Autonomy.Inherit},
+										remapping={'false': 'false', 'true': 'true', 'value': 'value'})
+
+			# x:337 y:220
+			OperatableStateMachine.add('Open SoftHand',
+										MoveSoftHand(motion_duration=2, motion_timestep=0.1),
+										transitions={'continue': 'continue', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'goal_hand_pos': 'open_pos', 'success': 'success'})
+
+			# x:329 y:34
+			OperatableStateMachine.add('Initalize controllers',
+										_sm_initalize_controllers_1,
+										transitions={'failed': 'failed', 'continue': 'continue'},
+										autonomy={'failed': Autonomy.Inherit, 'continue': Autonomy.Inherit},
+										remapping={'j_init_pose': 'j_init_pose'})
+
+
+		# x:560 y:111, x:562 y:500
+		_sm_cell_initialization_3 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['true', 'open_pos', 'value', 'false', 'j_init_pose'])
+
+		with _sm_cell_initialization_3:
+			# x:247 y:59
+			OperatableStateMachine.add('Concurrent init',
+										_sm_concurrent_init_2,
+										transitions={'failed': 'failed', 'continue': 'finished'},
+										autonomy={'failed': Autonomy.Inherit, 'continue': Autonomy.Inherit},
+										remapping={'false': 'false', 'true': 'true', 'value': 'value', 'j_init_pose': 'j_init_pose', 'open_pos': 'open_pos'})
+
+
+		# x:30 y:365, x:130 y:365
+		_sm_push_pin_out_4 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['j_push_pose', 'offset', 'rotation'])
+
+		with _sm_push_pin_out_4:
 			# x:49 y:40
 			OperatableStateMachine.add('Read push',
 										ReadFromMongo(),
@@ -119,14 +254,14 @@ class QundisHCAprotocolSM(Behavior):
 
 			# x:807 y:378
 			OperatableStateMachine.add('Move push BACK',
-										CallActionTFCartLin(namespace='panda_1', exe_time=3, offset=[0,-0.03,0.004,0,0,0], offset_type='global', limit_rotations=False),
+										CallActionTFCartLin(namespace='panda_1', exe_time=3, offset=[0,-0.03,0.004,0,0,0], offset_type='global', limit_rotations=False, soft_hand_offset=None),
 										transitions={'continue': 'continue', 'failed': 'Move push BACK'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_push', 't2_out': 't2_out'})
 
 			# x:839 y:124
 			OperatableStateMachine.add('Move push TF',
-										CallActionTFCartLin(namespace='panda_1', exe_time=3, offset=[0,0,0.004,0,0,0], offset_type='global', limit_rotations=False),
+										CallActionTFCartLin(namespace='panda_1', exe_time=3, offset=[0,0,0.004,0,0,0], offset_type='global', limit_rotations=False, soft_hand_offset=None),
 										transitions={'continue': 'Move push ALL THE WAY', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_push', 't2_out': 't2_out'})
@@ -159,16 +294,16 @@ class QundisHCAprotocolSM(Behavior):
 
 			# x:813 y:253
 			OperatableStateMachine.add('Move push ALL THE WAY',
-										CallActionTFCartLin(namespace='panda_1', exe_time=0.2, offset=[0,0.01,0.004,0,0,0], offset_type='global', limit_rotations=False),
+										CallActionTFCartLin(namespace='panda_1', exe_time=0.2, offset=[0,0.01,0.004,0,0,0], offset_type='global', limit_rotations=False, soft_hand_offset=None),
 										transitions={'continue': 'Move push BACK', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_push', 't2_out': 't2_out'})
 
 
-		# x:30 y:365, x:130 y:388
-		_sm_start_joint_impedance_controller_1 = OperatableStateMachine(outcomes=['finished', 'failed'])
+		# x:30 y:365, x:130 y:365
+		_sm_start_joint_impedance_controller_5 = OperatableStateMachine(outcomes=['finished', 'failed'])
 
-		with _sm_start_joint_impedance_controller_1:
+		with _sm_start_joint_impedance_controller_5:
 			# x:511 y:54
 			OperatableStateMachine.add('switch_on_controller',
 										SwitchControllerProxyClient(robot_name="panda_1", start_controller=["joint_impedance_controller"], stop_controller=["cartesian_impedance_controller_tum"], strictness=1),
@@ -196,32 +331,9 @@ class QundisHCAprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_start_cartesian_impedance_controller_2 = OperatableStateMachine(outcomes=['finished', 'failed'])
+		_sm_place_hca_on_slider_6 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['j_above_table', 'j_between_slider', 'j_above_slider', 'j_slightly_above_slider', 'release_pos'])
 
-		with _sm_start_cartesian_impedance_controller_2:
-			# x:536 y:26
-			OperatableStateMachine.add('switch_on_controller',
-										SwitchControllerProxyClient(robot_name="panda_1", start_controller=["cartesian_impedance_controller_tum"], stop_controller=["joint_impedance_controller"], strictness=1),
-										transitions={'continue': 'set_cart_compliance', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
-
-			# x:1040 y:110
-			OperatableStateMachine.add('wait1',
-										WaitState(wait_time=1),
-										transitions={'done': 'finished'},
-										autonomy={'done': Autonomy.Off})
-
-			# x:792 y:25
-			OperatableStateMachine.add('set_cart_compliance',
-										SetReconcycleCartesianCompliance(robot_name="panda_1", Kp=[self.Kp,self.Kp,self.Kp], Kr=[self.Kr,self.Kr,self.Kr]),
-										transitions={'continue': 'wait1', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
-
-
-		# x:30 y:365, x:130 y:365
-		_sm_place_hca_on_slider_3 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['j_above_table', 'j_between_slider', 'j_above_slider', 'j_slightly_above_slider', 'release_pos'])
-
-		with _sm_place_hca_on_slider_3:
+		with _sm_place_hca_on_slider_6:
 			# x:771 y:38
 			OperatableStateMachine.add('read_j_above_slider',
 										ReadFromMongo(),
@@ -266,58 +378,26 @@ class QundisHCAprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_move_robot_above_table_and_get_hca_pose_4 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['j_above_table', 'offset', 'rotation'], output_keys=['tf_pickup_pose'])
+		_sm_move_above_hca_and_pickup_7 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['offset', 'rotation', 'tf_pickup_pose', 'grab_pos', 'soft_grab_pos'])
 
-		with _sm_move_robot_above_table_and_get_hca_pose_4:
-			# x:321 y:32
-			OperatableStateMachine.add('Wait for motion to stop',
-										WaitState(wait_time=1),
-										transitions={'done': 'Read object TF'},
-										autonomy={'done': Autonomy.Off})
-
-			# x:916 y:240
-			OperatableStateMachine.add('Read_above_table',
-										ReadFromMongo(),
-										transitions={'continue': 'j_move_above_table', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'entry_name': 'j_above_table', 'joints_data': 'mdb_above_table_pose'})
-
-			# x:930 y:476
-			OperatableStateMachine.add('j_move_above_table',
-										CallJointTrap(max_vel=self.max_vel, max_acl=self.max_acl, namespace="panda_1"),
-										transitions={'continue': 'finished', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Off},
-										remapping={'joints_data': 'mdb_above_table_pose', 'joint_values': 'joint_values'})
-
-			# x:572 y:17
-			OperatableStateMachine.add('Read object TF',
-										ReadTFCartLin(target_frame="hca_back_vision_table_zero", source_frame="panda_1/panda_1_link0"),
-										transitions={'continue': 'Read_above_table', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'offset': 'offset', 'rotation': 'rotation', 't2_data': 'tf_pickup_pose'})
-
-
-		# x:30 y:365, x:130 y:365
-		_sm_move_above_hca_and_pickup_5 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['offset', 'rotation', 'tf_pickup_pose', 'grab_pos', 'soft_grab_pos'])
-
-		with _sm_move_above_hca_and_pickup_5:
+		with _sm_move_above_hca_and_pickup_7:
 			# x:408 y:50
 			OperatableStateMachine.add('Move pickup above pose',
-										CallActionTFCartLin(namespace="panda_1", exe_time=2, offset=[-0.03,0.03,-0.2,-102.472,-3.952,-120], offset_type='local', limit_rotations=True),
+										CallActionTFCartLin(namespace="panda_1", exe_time=2, offset=[-0.03,0.03,-0.2,-102.472,-3.952,-120], offset_type='local', limit_rotations=True, soft_hand_offset=None),
 										transitions={'continue': 'Move pickup pose', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_pickup_pose', 't2_out': 't2_out'})
 
 			# x:414 y:402
 			OperatableStateMachine.add('Move back pickup',
-										CallActionTFCartLin(namespace="panda_1", exe_time=2, offset=[-0.03,0.03,-0.2,-102.472,-3.952,-120], offset_type='local', limit_rotations=True),
+										CallActionTFCartLin(namespace="panda_1", exe_time=2, offset=[-0.03,0.03,-0.2,-102.472,-3.952,-120], offset_type='local', limit_rotations=True, soft_hand_offset=None),
 										transitions={'continue': 'finished', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_pickup_pose', 't2_out': 't2_out'})
 
 			# x:412 y:157
 			OperatableStateMachine.add('Move pickup pose',
-										CallActionTFCartLin(namespace="panda_1", exe_time=2, offset=[-0.03,0.03,-0.08,-102.472,-3.952,-120], offset_type='local', limit_rotations=True),
+										CallActionTFCartLin(namespace="panda_1", exe_time=2, offset=[-0.03,0.03,-0.08,-102.472,-3.952,-120], offset_type='local', limit_rotations=True, soft_hand_offset=None),
 										transitions={'continue': 'Grab the object', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_pickup_pose', 't2_out': 't2_out'})
@@ -331,9 +411,9 @@ class QundisHCAprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_close_vise_6 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['true', 'false', 'value'])
+		_sm_close_vise_8 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['true', 'false', 'value'])
 
-		with _sm_close_vise_6:
+		with _sm_close_vise_8:
 			# x:47 y:42
 			OperatableStateMachine.add('move_slider_back',
 										ActivateRaspiDigitalOuput(service_name="/move_slide"),
@@ -356,73 +436,79 @@ class QundisHCAprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_pickup_hca_and_put_into_vise_7 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['true', 'false', 'offset', 'rotation', 'grab_pos', 'soft_grab_pos', 'j_above_table', 'j_between_slider', 'j_above_slider', 'j_slightly_above_slider', 'release_pos'])
+		_sm_pick_up_hca_and_put_into_vise_9 = OperatableStateMachine(outcomes=['failed', 'finished'], input_keys=['offset', 'rotation', 'tf_pickup_pose', 'grab_pos', 'soft_grab_pos', 'j_above_table', 'j_between_slider', 'j_above_slider', 'j_slightly_above_slider', 'release_pos', 'true', 'false'])
 
-		with _sm_pickup_hca_and_put_into_vise_7:
-			# x:30 y:44
-			OperatableStateMachine.add('Move robot above table and get HCA pose',
-										_sm_move_robot_above_table_and_get_hca_pose_4,
-										transitions={'finished': 'Start Cartesian impedance controller', 'failed': 'failed'},
-										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-										remapping={'j_above_table': 'j_above_table', 'offset': 'offset', 'rotation': 'rotation', 'tf_pickup_pose': 'tf_pickup_pose'})
-
-			# x:624 y:40
+		with _sm_pick_up_hca_and_put_into_vise_9:
+			# x:46 y:40
 			OperatableStateMachine.add('Move above HCA and pickup',
-										_sm_move_above_hca_and_pickup_5,
+										_sm_move_above_hca_and_pickup_7,
 										transitions={'finished': 'Start joint impedance controller', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'offset': 'offset', 'rotation': 'rotation', 'tf_pickup_pose': 'tf_pickup_pose', 'grab_pos': 'grab_pos', 'soft_grab_pos': 'soft_grab_pos'})
 
-			# x:640 y:231
+			# x:62 y:231
 			OperatableStateMachine.add('Place HCA on slider',
-										_sm_place_hca_on_slider_3,
+										_sm_place_hca_on_slider_6,
 										transitions={'finished': 'Close vise', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'j_above_table': 'j_above_table', 'j_between_slider': 'j_between_slider', 'j_above_slider': 'j_above_slider', 'j_slightly_above_slider': 'j_slightly_above_slider', 'release_pos': 'release_pos'})
 
-			# x:338 y:49
-			OperatableStateMachine.add('Start Cartesian impedance controller',
-										_sm_start_cartesian_impedance_controller_2,
-										transitions={'finished': 'Move above HCA and pickup', 'failed': 'failed'},
-										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
-
-			# x:608 y:137
+			# x:30 y:137
 			OperatableStateMachine.add('Start joint impedance controller',
-										_sm_start_joint_impedance_controller_1,
+										_sm_start_joint_impedance_controller_5,
 										transitions={'finished': 'Place HCA on slider', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
-			# x:648 y:316
+			# x:70 y:316
 			OperatableStateMachine.add('Close vise',
-										_sm_close_vise_6,
+										_sm_close_vise_8,
 										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'true': 'true', 'false': 'false', 'value': 'false'})
 
 
-		# x:30 y:365, x:130 y:388
-		_sm_start_joint_impedance_controller_8 = OperatableStateMachine(outcomes=['finished', 'failed'])
+		# x:30 y:365, x:130 y:365
+		_sm_move_above_table_10 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['j_above_table'])
 
-		with _sm_start_joint_impedance_controller_8:
+		with _sm_move_above_table_10:
+			# x:30 y:40
+			OperatableStateMachine.add('Read_above_table',
+										ReadFromMongo(),
+										transitions={'continue': 'j_move_above_table', 'failed': 'j_move_above_table'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'entry_name': 'j_above_table', 'joints_data': 'mdb_above_table_pose'})
+
+			# x:46 y:160
+			OperatableStateMachine.add('j_move_above_table',
+										CallJointTrap(max_vel=self.max_vel, max_acl=self.max_acl, namespace="panda_1"),
+										transitions={'continue': 'finished', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Off},
+										remapping={'joints_data': 'mdb_above_table_pose', 'joint_values': 'joint_values'})
+
+
+		# x:30 y:365, x:130 y:388
+		_sm_start_joint_impedance_controller_11 = OperatableStateMachine(outcomes=['finished', 'failed'])
+
+		with _sm_start_joint_impedance_controller_11:
 			# x:511 y:54
 			OperatableStateMachine.add('switch_on_controller',
 										SwitchControllerProxyClient(robot_name="panda_1", start_controller=["joint_impedance_controller"], stop_controller=["cartesian_impedance_controller_tum"], strictness=1),
 										transitions={'continue': 'finished', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:98 y:430
+			# x:728 y:134
 			OperatableStateMachine.add('load_joint_controller',
 										LoadControllerProxyClient(desired_controller="joint_impedance_controller", robot_name="panda_1"),
 										transitions={'continue': 'switch_on_controller', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:614 y:368
+			# x:540 y:311
 			OperatableStateMachine.add('unload_cartesian_controller',
 										UnloadControllerProxyClient(desired_controller="cartesian_impedance_controller", robot_name="panda_1"),
 										transitions={'continue': 'finished', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:115 y:326
+			# x:483 y:213
 			OperatableStateMachine.add('find_active_controller',
 										ActiveControllerProxyClient(robot_name="panda_1", real_controllers="cartesian_impedance_controller"),
 										transitions={'continue': 'load_joint_controller', 'failed': 'failed'},
@@ -431,9 +517,9 @@ class QundisHCAprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_start_cartesian_impedance_controller_9 = OperatableStateMachine(outcomes=['finished', 'failed'])
+		_sm_start_cartesian_impedance_controller_12 = OperatableStateMachine(outcomes=['finished', 'failed'])
 
-		with _sm_start_cartesian_impedance_controller_9:
+		with _sm_start_cartesian_impedance_controller_12:
 			# x:536 y:26
 			OperatableStateMachine.add('switch_on_controller',
 										SwitchControllerProxyClient(robot_name="panda_1", start_controller=["cartesian_impedance_controller_tum"], stop_controller=["joint_impedance_controller"], strictness=1),
@@ -454,9 +540,9 @@ class QundisHCAprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_place_hca_on_slider_10 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['j_above_table', 'j_between_slider', 'j_above_slider', 'j_slightly_above_slider', 'release_pos'])
+		_sm_place_hca_on_slider_13 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['j_above_table', 'j_between_slider', 'j_above_slider', 'j_slightly_above_slider', 'release_pos'])
 
-		with _sm_place_hca_on_slider_10:
+		with _sm_place_hca_on_slider_13:
 			# x:771 y:38
 			OperatableStateMachine.add('read_j_above_slider',
 										ReadFromMongo(),
@@ -501,9 +587,9 @@ class QundisHCAprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_move_robot_above_table_and_get_hca_pose_11 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['j_above_table', 'offset', 'rotation'], output_keys=['tf_pickup_pose'])
+		_sm_move_robot_above_table_and_get_hca_pose_14 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['j_above_table', 'offset', 'rotation'], output_keys=['tf_pickup_pose'])
 
-		with _sm_move_robot_above_table_and_get_hca_pose_11:
+		with _sm_move_robot_above_table_and_get_hca_pose_14:
 			# x:321 y:32
 			OperatableStateMachine.add('Wait for motion to stop',
 										WaitState(wait_time=1),
@@ -533,26 +619,26 @@ class QundisHCAprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_move_above_hca_and_pickup_12 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['offset', 'rotation', 'tf_pickup_pose', 'grab_pos', 'soft_grab_pos'])
+		_sm_move_above_hca_and_pickup_15 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['offset', 'rotation', 'tf_pickup_pose', 'grab_pos', 'soft_grab_pos'])
 
-		with _sm_move_above_hca_and_pickup_12:
+		with _sm_move_above_hca_and_pickup_15:
 			# x:408 y:50
 			OperatableStateMachine.add('Move pickup above pose',
-										CallActionTFCartLin(namespace="panda_1", exe_time=2, offset=[-0.03,0.03,-0.2,-102.472,-3.952,-120], offset_type='local', limit_rotations=True),
+										CallActionTFCartLin(namespace="panda_1", exe_time=2, offset=[-0.03,0.03,-0.2,-102.472,-3.952,-120], offset_type='local', limit_rotations=True, soft_hand_offset=None),
 										transitions={'continue': 'Move pickup pose', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_pickup_pose', 't2_out': 't2_out'})
 
 			# x:414 y:402
 			OperatableStateMachine.add('Move back pickup',
-										CallActionTFCartLin(namespace="panda_1", exe_time=2, offset=[-0.03,0.03,-0.2,-102.472,-3.952,-120], offset_type='local', limit_rotations=True),
+										CallActionTFCartLin(namespace="panda_1", exe_time=2, offset=[-0.03,0.03,-0.2,-102.472,-3.952,-120], offset_type='local', limit_rotations=True, soft_hand_offset=None),
 										transitions={'continue': 'finished', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_pickup_pose', 't2_out': 't2_out'})
 
 			# x:412 y:157
 			OperatableStateMachine.add('Move pickup pose',
-										CallActionTFCartLin(namespace="panda_1", exe_time=2, offset=[-0.03,0.03,-0.08,-102.472,-3.952,-120], offset_type='local', limit_rotations=True),
+										CallActionTFCartLin(namespace="panda_1", exe_time=2, offset=[-0.03,0.03,-0.08,-102.472,-3.952,-120], offset_type='local', limit_rotations=True, soft_hand_offset=None),
 										transitions={'continue': 'Grab the object', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_pickup_pose', 't2_out': 't2_out'})
@@ -566,9 +652,9 @@ class QundisHCAprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_close_vise_13 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['true', 'false', 'value'])
+		_sm_close_vise_16 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['true', 'false', 'value'])
 
-		with _sm_close_vise_13:
+		with _sm_close_vise_16:
 			# x:47 y:42
 			OperatableStateMachine.add('move_slider_back',
 										ActivateRaspiDigitalOuput(service_name="/move_slide"),
@@ -591,76 +677,76 @@ class QundisHCAprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_pickup_hca_and_put_into_vise_2_14 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['true', 'false', 'offset', 'rotation', 'grab_pos', 'soft_grab_pos', 'j_above_table', 'j_between_slider', 'j_above_slider', 'j_slightly_above_slider', 'release_pos'])
+		_sm_pickup_hca_and_put_into_vise_2_17 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['true', 'false', 'offset', 'rotation', 'grab_pos', 'soft_grab_pos', 'j_above_table', 'j_between_slider', 'j_above_slider', 'j_slightly_above_slider', 'release_pos'])
 
-		with _sm_pickup_hca_and_put_into_vise_2_14:
+		with _sm_pickup_hca_and_put_into_vise_2_17:
 			# x:30 y:44
 			OperatableStateMachine.add('Move robot above table and get HCA pose',
-										_sm_move_robot_above_table_and_get_hca_pose_11,
+										_sm_move_robot_above_table_and_get_hca_pose_14,
 										transitions={'finished': 'Start Cartesian impedance controller', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'j_above_table': 'j_above_table', 'offset': 'offset', 'rotation': 'rotation', 'tf_pickup_pose': 'tf_pickup_pose'})
 
 			# x:624 y:40
 			OperatableStateMachine.add('Move above HCA and pickup',
-										_sm_move_above_hca_and_pickup_12,
+										_sm_move_above_hca_and_pickup_15,
 										transitions={'finished': 'Start joint impedance controller', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'offset': 'offset', 'rotation': 'rotation', 'tf_pickup_pose': 'tf_pickup_pose', 'grab_pos': 'grab_pos', 'soft_grab_pos': 'soft_grab_pos'})
 
 			# x:640 y:231
 			OperatableStateMachine.add('Place HCA on slider',
-										_sm_place_hca_on_slider_10,
+										_sm_place_hca_on_slider_13,
 										transitions={'finished': 'Close vise', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'j_above_table': 'j_above_table', 'j_between_slider': 'j_between_slider', 'j_above_slider': 'j_above_slider', 'j_slightly_above_slider': 'j_slightly_above_slider', 'release_pos': 'release_pos'})
 
 			# x:338 y:49
 			OperatableStateMachine.add('Start Cartesian impedance controller',
-										_sm_start_cartesian_impedance_controller_9,
+										_sm_start_cartesian_impedance_controller_12,
 										transitions={'finished': 'Move above HCA and pickup', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
 			# x:608 y:137
 			OperatableStateMachine.add('Start joint impedance controller',
-										_sm_start_joint_impedance_controller_8,
+										_sm_start_joint_impedance_controller_11,
 										transitions={'finished': 'Place HCA on slider', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
 			# x:648 y:316
 			OperatableStateMachine.add('Close vise',
-										_sm_close_vise_13,
+										_sm_close_vise_16,
 										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'true': 'true', 'false': 'false', 'value': 'false'})
 
 
 		# x:30 y:365, x:130 y:365, x:230 y:365, x:330 y:365
-		_sm_move_pcb_to_cutter_and_put_new_hca_into_vise_15 = ConcurrencyContainer(outcomes=['finished', 'failed'], input_keys=['true', 'false', 'offset', 'rotation', 'grab_pos', 'soft_grab_pos', 'j_above_table', 'j_between_slider', 'j_above_slider', 'j_slightly_above_slider', 'release_pos'], conditions=[
+		_sm_move_pcb_to_cutter_and_put_new_hca_into_vise_18 = ConcurrencyContainer(outcomes=['finished', 'failed'], input_keys=['true', 'false', 'offset', 'rotation', 'grab_pos', 'soft_grab_pos', 'j_above_table', 'j_between_slider', 'j_above_slider', 'j_slightly_above_slider', 'release_pos'], conditions=[
 										('finished', [('Pickup HCA and put into vise_2', 'finished'), ('Cutting PCB', 'finished')]),
 										('failed', [('Pickup HCA and put into vise_2', 'failed'), ('Cutting PCB', 'failed')])
 										])
 
-		with _sm_move_pcb_to_cutter_and_put_new_hca_into_vise_15:
+		with _sm_move_pcb_to_cutter_and_put_new_hca_into_vise_18:
 			# x:56 y:40
 			OperatableStateMachine.add('Pickup HCA and put into vise_2',
-										_sm_pickup_hca_and_put_into_vise_2_14,
+										_sm_pickup_hca_and_put_into_vise_2_17,
 										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'true': 'true', 'false': 'false', 'offset': 'offset', 'rotation': 'rotation', 'grab_pos': 'grab_pos', 'soft_grab_pos': 'soft_grab_pos', 'j_above_table': 'j_above_table', 'j_between_slider': 'j_between_slider', 'j_above_slider': 'j_above_slider', 'j_slightly_above_slider': 'j_slightly_above_slider', 'release_pos': 'release_pos'})
 
 			# x:171 y:139
 			OperatableStateMachine.add('Cutting PCB',
-										self.use_behavior(CuttingPCBSM, 'Move PCB to cutter and put new HCA into vise/Cutting PCB',
+										self.use_behavior(CuttingPCBSM, 'Action selection/Move PCB to cutter and put new HCA into vise/Cutting PCB',
 											default_keys=['PCB_location_name','simulate_cutter','battery_location_name']),
 										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_move_to_safe_location_2_16 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['position_name'])
+		_sm_move_to_safe_location_2_19 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['position_name'])
 
-		with _sm_move_to_safe_location_2_16:
+		with _sm_move_to_safe_location_2_19:
 			# x:182 y:50
 			OperatableStateMachine.add('Read robot position',
 										ReadFromMongo(),
@@ -676,10 +762,10 @@ class QundisHCAprotocolSM(Behavior):
 										remapping={'joints_data': 'joints_positions', 'joint_values': 'joint_values'})
 
 
-		# x:610 y:284, x:319 y:191
-		_sm_levering_action_17 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['offset', 'rotation', 'safe_position_name'])
+		# x:30 y:365, x:130 y:365
+		_sm_levering_action_20 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['offset', 'rotation', 'safe_position_name'])
 
-		with _sm_levering_action_17:
+		with _sm_levering_action_20:
 			# x:80 y:37
 			OperatableStateMachine.add('Read gap pose',
 										ReadTFCartLin(target_frame="HCA_gap_pose", source_frame="panda_2/panda_2_link0"),
@@ -689,7 +775,7 @@ class QundisHCAprotocolSM(Behavior):
 
 			# x:544 y:171
 			OperatableStateMachine.add('Move to safe location_2',
-										_sm_move_to_safe_location_2_16,
+										_sm_move_to_safe_location_2_19,
 										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'position_name': 'safe_position_name'})
@@ -703,16 +789,16 @@ class QundisHCAprotocolSM(Behavior):
 
 			# x:294 y:32
 			OperatableStateMachine.add('Move to gap pose',
-										CallActionTFCartLin(namespace="panda_2", exe_time=3, offset=0, offset_type='local', limit_rotations=False),
+										CallActionTFCartLin(namespace="panda_2", exe_time=3, offset=0, offset_type='local', limit_rotations=False, soft_hand_offset=None),
 										transitions={'continue': 'Start levering', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_gap', 't2_out': 't2_out'})
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_throw_pcb_from_vise_18 = OperatableStateMachine(outcomes=['continue', 'failed'], input_keys=['FA', 'TR'])
+		_sm_throw_pcb_from_vise_21 = OperatableStateMachine(outcomes=['continue', 'failed'], input_keys=['FA', 'TR'])
 
-		with _sm_throw_pcb_from_vise_18:
+		with _sm_throw_pcb_from_vise_21:
 			# x:284 y:40
 			OperatableStateMachine.add('Pull in tray',
 										ActivateRaspiDigitalOuput(service_name=self.tray_service_name),
@@ -768,231 +854,122 @@ class QundisHCAprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_remove_housing_19 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['TR', 'FA'])
+		_sm_remove_housing_22 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['TR', 'FA'])
 
-		with _sm_remove_housing_19:
+		with _sm_remove_housing_22:
 			# x:65 y:119
 			OperatableStateMachine.add('Throw PCB from vise',
-										_sm_throw_pcb_from_vise_18,
+										_sm_throw_pcb_from_vise_21,
 										transitions={'continue': 'Pick plastic from clamp', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'FA': 'FA', 'TR': 'TR'})
 
 			# x:243 y:238
 			OperatableStateMachine.add('Pick plastic from clamp',
-										self.use_behavior(PickplasticfromclampSM, 'Change tool and remove HCA housing/Remove housing/Pick plastic from clamp',
+										self.use_behavior(PickplasticfromclampSM, 'Action selection/Change tool and remove HCA housing/Remove housing/Pick plastic from clamp',
 											default_keys=['clamp_waiting_location_name','closed_hand_clamp','clamp_pick_location_name','clamp_above_location_name']),
 										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
 
 		# x:30 y:365, x:130 y:365, x:230 y:365, x:330 y:365
-		_sm_change_tool_and_remove_hca_housing_20 = ConcurrencyContainer(outcomes=['finished', 'failed'], input_keys=['true', 'false'], conditions=[
+		_sm_change_tool_and_remove_hca_housing_23 = ConcurrencyContainer(outcomes=['finished', 'failed'], input_keys=['true', 'false'], conditions=[
 										('finished', [('Change tool on robot', 'finished'), ('Remove housing', 'finished')]),
 										('failed', [('Change tool on robot', 'failed'), ('Remove housing', 'failed')])
 										])
 
-		with _sm_change_tool_and_remove_hca_housing_20:
+		with _sm_change_tool_and_remove_hca_housing_23:
 			# x:30 y:40
 			OperatableStateMachine.add('Change tool on robot',
-										self.use_behavior(ChangetoolonrobotSM, 'Change tool and remove HCA housing/Change tool on robot',
+										self.use_behavior(ChangetoolonrobotSM, 'Action selection/Change tool and remove HCA housing/Change tool on robot',
 											default_keys=['tool_drop_location_name','tool_take_location_name','before_drop_location_name','after_take_location_name','open_air_block']),
 										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
 			# x:307 y:60
 			OperatableStateMachine.add('Remove housing',
-										_sm_remove_housing_19,
+										_sm_remove_housing_22,
 										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'TR': 'true', 'FA': 'false'})
 
 
-		# x:30 y:365, x:162 y:464
-		_sm_initialize_holder_and_slider_21 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['false', 'true', 'value'])
+		# x:65 y:200, x:786 y:142
+		_sm_action_selection_24 = OperatableStateMachine(outcomes=['failed', 'finished'], input_keys=['true', 'false', 'offset', 'rotation', 'safe_position_name', 'grab_pos', 'soft_grab_pos', 'j_above_table', 'j_between_slider', 'j_above_slider', 'j_slightly_above_slider', 'release_pos', 'j_push_pose'])
 
-		with _sm_initialize_holder_and_slider_21:
-			# x:30 y:51
-			OperatableStateMachine.add('Open pneumatic block',
-										ActivateRaspiDigitalOuput(service_name="/obr_block2_ON"),
-										transitions={'continue': 'Move slider back', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Off},
-										remapping={'value': 'true', 'success': 'success'})
+		with _sm_action_selection_24:
+			# x:159 y:28
+			OperatableStateMachine.add('Read recommended action',
+										ReadNextVisionAction(),
+										transitions={'move': 'failed', 'cut': 'Move PCB to cutter and put new HCA into vise', 'lever': 'Levering action', 'turn_over': 'failed', 'remove_clip': 'Push pin out'},
+										autonomy={'move': Autonomy.Off, 'cut': Autonomy.Off, 'lever': Autonomy.Off, 'turn_over': Autonomy.Off, 'remove_clip': Autonomy.Off},
+										remapping={'action': 'action'})
 
-			# x:410 y:338
-			OperatableStateMachine.add('Move slider to front',
-										ActivateRaspiDigitalOuput(service_name="/move_slide"),
-										transitions={'continue': 'Open holder', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'value': 'value', 'success': 'success'})
+			# x:517 y:209
+			OperatableStateMachine.add('Levering action',
+										_sm_levering_action_20,
+										transitions={'finished': 'finished', 'failed': 'failed'},
+										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
+										remapping={'offset': 'offset', 'rotation': 'rotation', 'safe_position_name': 'safe_position_name'})
 
-			# x:388 y:442
-			OperatableStateMachine.add('Open holder',
-										ActivateRaspiDigitalOuput(service_name="/obr_activate"),
-										transitions={'continue': 'continue', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'value': 'false', 'success': 'success'})
+			# x:367 y:393
+			OperatableStateMachine.add('Move PCB to cutter and put new HCA into vise',
+										_sm_move_pcb_to_cutter_and_put_new_hca_into_vise_18,
+										transitions={'finished': 'finished', 'failed': 'failed'},
+										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
+										remapping={'true': 'true', 'false': 'false', 'offset': 'offset', 'rotation': 'rotation', 'grab_pos': 'grab_pos', 'soft_grab_pos': 'soft_grab_pos', 'j_above_table': 'j_above_table', 'j_between_slider': 'j_between_slider', 'j_above_slider': 'j_above_slider', 'j_slightly_above_slider': 'j_slightly_above_slider', 'release_pos': 'release_pos'})
 
-			# x:426 y:133
-			OperatableStateMachine.add('Rotate holder up',
-										ActivateRaspiDigitalOuput(service_name="/obr_rotate"),
-										transitions={'continue': 'Wait again', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'value': 'false', 'success': 'success'})
+			# x:485 y:487
+			OperatableStateMachine.add('Move above table',
+										_sm_move_above_table_10,
+										transitions={'finished': 'finished', 'failed': 'failed'},
+										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
+										remapping={'j_above_table': 'j_above_table'})
 
-			# x:476 y:35
-			OperatableStateMachine.add('Wait',
-										WaitState(wait_time=1),
-										transitions={'done': 'Rotate holder up'},
-										autonomy={'done': Autonomy.Off})
+			# x:435 y:126
+			OperatableStateMachine.add('Pick up HCA and put into vise',
+										_sm_pick_up_hca_and_put_into_vise_9,
+										transitions={'failed': 'failed', 'finished': 'finished'},
+										autonomy={'failed': Autonomy.Inherit, 'finished': Autonomy.Inherit},
+										remapping={'offset': 'offset', 'rotation': 'rotation', 'tf_pickup_pose': 'tf_pickup_pose', 'grab_pos': 'grab_pos', 'soft_grab_pos': 'soft_grab_pos', 'j_above_table': 'j_above_table', 'j_between_slider': 'j_between_slider', 'j_above_slider': 'j_above_slider', 'j_slightly_above_slider': 'j_slightly_above_slider', 'release_pos': 'release_pos', 'true': 'true', 'false': 'false'})
 
-			# x:459 y:234
-			OperatableStateMachine.add('Wait again',
-										WaitState(wait_time=1),
-										transitions={'done': 'Move slider to front'},
-										autonomy={'done': Autonomy.Off})
-
-			# x:263 y:41
-			OperatableStateMachine.add('Move slider back',
-										ActivateRaspiDigitalOuput(service_name="/move_slide"),
-										transitions={'continue': 'Wait', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'value': 'false', 'success': 'success'})
-
-
-		# x:346 y:189, x:314 y:342
-		_sm_initalize_controllers_22 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['j_init_pose'])
-
-		with _sm_initalize_controllers_22:
-			# x:55 y:38
-			OperatableStateMachine.add('Load Cartesian controllers',
-										LoadControllerProxyClient(desired_controller="cartesian_impedance_controller_tum", robot_name="panda_1"),
-										transitions={'continue': 'Load joint controllers', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
-
-			# x:273 y:37
-			OperatableStateMachine.add('Load joint controllers',
-										LoadControllerProxyClient(desired_controller="joint_impedance_controller", robot_name="panda_1"),
-										transitions={'continue': 'Error recovery', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
-
-			# x:755 y:231
-			OperatableStateMachine.add('Move to initial position',
-										CallJointTrap(max_vel=self.max_vel, max_acl=self.max_acl, namespace='panda_1'),
-										transitions={'continue': 'continue', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'joints_data': 'mdb_init_pose', 'joint_values': 'joint_values'})
-
-			# x:750 y:139
-			OperatableStateMachine.add('Read initial joint position',
-										ReadFromMongo(),
-										transitions={'continue': 'Move to initial position', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'entry_name': 'j_init_pose', 'joints_data': 'mdb_init_pose'})
-
-			# x:741 y:34
-			OperatableStateMachine.add('Switch to joint controllers',
-										SwitchControllerProxyClient(robot_name="panda_1", start_controller=["joint_impedance_controller"], stop_controller=["cartesian_impedance_controller_tum"], strictness=1),
-										transitions={'continue': 'Read initial joint position', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
-
-			# x:500 y:35
-			OperatableStateMachine.add('Error recovery',
-										FrankaErrorRecoveryActionProxy(robot_name="panda_1"),
-										transitions={'continue': 'Switch to joint controllers', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
-
-
-		# x:30 y:365, x:263 y:159, x:230 y:365, x:330 y:365
-		_sm_concurrent_init_23 = ConcurrencyContainer(outcomes=['failed', 'continue'], input_keys=['false', 'true', 'value', 'j_init_pose', 'open_pos'], conditions=[
-										('continue', [('Initialize holder and slider', 'continue'), ('Initalize controllers', 'continue'), ('Open SoftHand', 'continue')]),
-										('failed', [('Initalize controllers', 'failed'), ('Initialize holder and slider', 'failed'), ('Open SoftHand', 'failed')])
-										])
-
-		with _sm_concurrent_init_23:
-			# x:77 y:42
-			OperatableStateMachine.add('Initialize holder and slider',
-										_sm_initialize_holder_and_slider_21,
-										transitions={'failed': 'failed', 'continue': 'continue'},
-										autonomy={'failed': Autonomy.Inherit, 'continue': Autonomy.Inherit},
-										remapping={'false': 'false', 'true': 'true', 'value': 'value'})
-
-			# x:337 y:220
-			OperatableStateMachine.add('Open SoftHand',
-										MoveSoftHand(motion_duration=2, motion_timestep=0.1),
-										transitions={'continue': 'continue', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'goal_hand_pos': 'open_pos', 'success': 'success'})
-
-			# x:329 y:34
-			OperatableStateMachine.add('Initalize controllers',
-										_sm_initalize_controllers_22,
-										transitions={'failed': 'failed', 'continue': 'continue'},
-										autonomy={'failed': Autonomy.Inherit, 'continue': Autonomy.Inherit},
-										remapping={'j_init_pose': 'j_init_pose'})
-
-
-		# x:560 y:111, x:562 y:500
-		_sm_cell_initialization_24 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['true', 'open_pos', 'value', 'false', 'j_init_pose'])
-
-		with _sm_cell_initialization_24:
-			# x:247 y:59
-			OperatableStateMachine.add('Concurrent init',
-										_sm_concurrent_init_23,
+			# x:519 y:37
+			OperatableStateMachine.add('Push pin out',
+										_sm_push_pin_out_4,
 										transitions={'failed': 'failed', 'continue': 'finished'},
 										autonomy={'failed': Autonomy.Inherit, 'continue': Autonomy.Inherit},
-										remapping={'false': 'false', 'true': 'true', 'value': 'value', 'j_init_pose': 'j_init_pose', 'open_pos': 'open_pos'})
+										remapping={'j_push_pose': 'j_push_pose', 'offset': 'offset', 'rotation': 'rotation'})
+
+			# x:407 y:302
+			OperatableStateMachine.add('Change tool and remove HCA housing',
+										_sm_change_tool_and_remove_hca_housing_23,
+										transitions={'finished': 'finished', 'failed': 'failed'},
+										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
+										remapping={'true': 'true', 'false': 'false'})
 
 
 
 		with _state_machine:
+			# x:742 y:199
+			OperatableStateMachine.add('Action selection',
+										_sm_action_selection_24,
+										transitions={'failed': 'failed', 'finished': 'finished'},
+										autonomy={'failed': Autonomy.Inherit, 'finished': Autonomy.Inherit},
+										remapping={'true': 'true', 'false': 'false', 'offset': 'offset', 'rotation': 'rotation', 'safe_position_name': 'safe_position_name', 'grab_pos': 'grab_pos', 'soft_grab_pos': 'soft_grab_pos', 'j_above_table': 'j_above_table', 'j_between_slider': 'j_between_slider', 'j_above_slider': 'j_above_slider', 'j_slightly_above_slider': 'j_slightly_above_slider', 'release_pos': 'release_pos', 'j_push_pose': 'j_push_pose'})
+
 			# x:94 y:26
 			OperatableStateMachine.add('Cell initialization',
-										_sm_cell_initialization_24,
-										transitions={'finished': 'Pickup HCA and put into vise', 'failed': 'failed'},
+										_sm_cell_initialization_3,
+										transitions={'finished': 'Read object TF', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'true': 'true', 'open_pos': 'release_pos', 'value': 'true', 'false': 'false', 'j_init_pose': 'j_init_pose'})
 
-			# x:748 y:167
-			OperatableStateMachine.add('Change tool and remove HCA housing',
-										_sm_change_tool_and_remove_hca_housing_20,
-										transitions={'finished': 'Move PCB to cutter and put new HCA into vise', 'failed': 'failed'},
-										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-										remapping={'true': 'true', 'false': 'false'})
-
-			# x:66 y:446
-			OperatableStateMachine.add('D5_2',
-										self.use_behavior(D5_2SM, 'D5_2'),
-										transitions={'finished': 'finished', 'failed': 'failed'},
-										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
-
-			# x:898 y:25
-			OperatableStateMachine.add('Levering action',
-										_sm_levering_action_17,
-										transitions={'finished': 'Change tool and remove HCA housing', 'failed': 'failed'},
-										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-										remapping={'offset': 'offset', 'rotation': 'rotation', 'safe_position_name': 'safe_position_name'})
-
-			# x:717 y:322
-			OperatableStateMachine.add('Move PCB to cutter and put new HCA into vise',
-										_sm_move_pcb_to_cutter_and_put_new_hca_into_vise_15,
-										transitions={'finished': 'finished', 'failed': 'failed'},
-										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-										remapping={'true': 'true', 'false': 'false', 'offset': 'offset', 'rotation': 'rotation', 'grab_pos': 'grab_pos', 'soft_grab_pos': 'soft_grab_pos', 'j_above_table': 'j_above_table', 'j_between_slider': 'j_between_slider', 'j_above_slider': 'j_above_slider', 'j_slightly_above_slider': 'j_slightly_above_slider', 'release_pos': 'release_pos'})
-
-			# x:358 y:21
-			OperatableStateMachine.add('Pickup HCA and put into vise',
-										_sm_pickup_hca_and_put_into_vise_7,
-										transitions={'finished': 'Push pin out', 'failed': 'failed'},
-										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-										remapping={'true': 'true', 'false': 'false', 'offset': 'offset', 'rotation': 'rotation', 'grab_pos': 'grab_pos', 'soft_grab_pos': 'soft_grab_pos', 'j_above_table': 'j_above_table', 'j_between_slider': 'j_between_slider', 'j_above_slider': 'j_above_slider', 'j_slightly_above_slider': 'j_slightly_above_slider', 'release_pos': 'release_pos'})
-
-			# x:645 y:21
-			OperatableStateMachine.add('Push pin out',
-										_sm_push_pin_out_0,
-										transitions={'failed': 'failed', 'continue': 'Levering action'},
-										autonomy={'failed': Autonomy.Inherit, 'continue': Autonomy.Inherit},
-										remapping={'j_push_pose': 'j_push_pose', 'offset': 'offset', 'rotation': 'rotation'})
+			# x:390 y:19
+			OperatableStateMachine.add('Read object TF',
+										ReadTFCartLin(target_frame="hca_back_vision_table_zero", source_frame="panda_1/panda_1_link0"),
+										transitions={'continue': 'Action selection', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'offset': 'offset', 'rotation': 'rotation', 't2_data': 'tf_pickup_pose'})
 
 
 		return _state_machine

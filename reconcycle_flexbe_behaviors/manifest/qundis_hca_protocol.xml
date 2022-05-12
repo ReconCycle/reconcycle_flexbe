@@ -21,10 +21,9 @@
 
 
 	<!-- Contained Behaviors -->
+	<contains name="Cutting PCB" />
 	<contains name="Change tool on robot" />
 	<contains name="Pick plastic from clamp" />
-	<contains name="D5_2" />
-	<contains name="Cutting PCB" />
 
 	<!-- Available Parameters -->
 	<params>

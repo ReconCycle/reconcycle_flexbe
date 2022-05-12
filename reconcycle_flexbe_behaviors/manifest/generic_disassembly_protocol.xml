@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Generic disassembly protocol">
+
+	<executable package_path="reconcycle_flexbe_behaviors.generic_disassembly_protocol_sm" class="GenericdisassemblyprotocolSM" />
+	<tagstring></tagstring>
+	<author>Matija Mavsar</author>
+	<date>Tue May 03 2022</date>
+	<description>
+		Development version of a generic disassembly protocol for all HCAs
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="numeric" name="max_acl" default="1" label="max_acl" hint="Sets the max_acl">
+			<min value="0" />
+			<max value="2" />
+		</param>
+
+		<param type="numeric" name="max_vel" default="1" label="max_vel" hint="Sets the max_vel">
+			<min value="0" />
+			<max value="2" />
+		</param>
+
+		<param type="numeric" name="Kp" default="2000" label="Kp" hint="Sets the Kp">
+			<min value="0" />
+			<max value="2000" />
+		</param>
+
+		<param type="numeric" name="Kr" default="30" label="Kr" hint="Sets the Kr">
+			<min value="0" />
+			<max value="30" />
+		</param>
+
+		<param type="text" name="cartesian_controller" default="cartesian_impedance_controller" label="cartesian_controller" hint="Sets the cartesian_controller" />
+
+		<param type="text" name="namespace" default="panda_1" label="namespace" hint="Sets the namespace" />
+
+	</params>
+
+
+</behavior>

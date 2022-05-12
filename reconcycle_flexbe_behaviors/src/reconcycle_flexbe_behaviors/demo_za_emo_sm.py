@@ -267,21 +267,21 @@ Opis:
 		with _sm_cart_move_to_object_4:
 			# x:408 y:50
 			OperatableStateMachine.add('Move pickup above pose',
-										CallActionTFCartLin(namespace="panda_1", exe_time=2, offset=[-0.03,0.03,-0.2,-102.472,-3.952,-120], offset_type='local', limit_rotations=True),
+										CallActionTFCartLin(namespace="panda_1", exe_time=2, offset=[-0.03,0.03,-0.2,-102.472,-3.952,-120], offset_type='local', limit_rotations=True, soft_hand_offset=None),
 										transitions={'continue': 'Move pickup pose', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_pickup_pose', 't2_out': 't2_out'})
 
 			# x:414 y:402
 			OperatableStateMachine.add('Move back pickup',
-										CallActionTFCartLin(namespace="panda_1", exe_time=2, offset=[-0.03,0.03,-0.2,-102.472,-3.952,-120], offset_type='local', limit_rotations=True),
+										CallActionTFCartLin(namespace="panda_1", exe_time=2, offset=[-0.03,0.03,-0.2,-102.472,-3.952,-120], offset_type='local', limit_rotations=True, soft_hand_offset=None),
 										transitions={'continue': 'finished', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_pickup_pose', 't2_out': 't2_out'})
 
 			# x:412 y:157
 			OperatableStateMachine.add('Move pickup pose',
-										CallActionTFCartLin(namespace="panda_1", exe_time=2, offset=[-0.03,0.03,-0.08,-102.472,-3.952,-120], offset_type='local', limit_rotations=True),
+										CallActionTFCartLin(namespace="panda_1", exe_time=2, offset=[-0.03,0.03,-0.08,-102.472,-3.952,-120], offset_type='local', limit_rotations=True, soft_hand_offset=None),
 										transitions={'continue': 'Grab the object', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Low, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_pickup_pose', 't2_out': 't2_out'})
@@ -361,7 +361,7 @@ Opis:
 
 			# x:967 y:342
 			OperatableStateMachine.add('move_above',
-										CallActionTFCartLin(namespace="panda_1", exe_time=2, offset=[0,0,-0.1, 0,0,0], offset_type='local', limit_rotations=False),
+										CallActionTFCartLin(namespace="panda_1", exe_time=2, offset=[0,0,-0.1, 0,0,0], offset_type='local', limit_rotations=False, soft_hand_offset=None),
 										transitions={'continue': 'Open hand and move init', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'drop_pose', 't2_out': 't2_out'})
@@ -679,7 +679,7 @@ Opis:
 			# x:939 y:503
 			OperatableStateMachine.add('Place randomly',
 										_sm_place_randomly_7,
-										transitions={'finished': 'Init cell', 'failed': 'finished'},
+										transitions={'finished': 'finished', 'failed': 'finished'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'mdb_above_table_pose': 'mdb_above_table_pose', 'mdb_init_pose': 'mdb_init_pose', 'release_pos': 'release_pos', 'slight_release_pos': 'slight_release_pos'})
 
@@ -707,7 +707,7 @@ Opis:
 			# x:921 y:214
 			OperatableStateMachine.add('joint_place_to_slider',
 										_sm_joint_place_to_slider_2,
-										transitions={'finished': 'Close and rotate', 'failed': 'failed'},
+										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'j_above_table': 'j_above_table', 'j_between_slider': 'j_between_slider', 'j_above_slider': 'j_above_slider', 'j_slightly_above_slider': 'j_slightly_above_slider', 'release_pos': 'release_pos'})
 

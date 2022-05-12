@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="testing_motions">
+
+	<executable package_path="reconcycle_flexbe_behaviors.testing_motions_sm" class="testing_motionsSM" />
+	<tagstring>test</tagstring>
+	<author>miha</author>
+	<date>Mon Sep 13 2021</date>
+	<description>
+		Testing cartesian and joint controllers.
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="numeric" name="Kp" default="2000" label="Kp" hint="Sets the Kp">
+			<min value="0" />
+			<max value="2000" />
+		</param>
+
+		<param type="numeric" name="Kr" default="30" label="Kr" hint="Sets the Kr">
+			<min value="0" />
+			<max value="30" />
+		</param>
+
+		<param type="numeric" name="max_vel" default="1" label="max_vel" hint="Sets the max_vel">
+			<min value="0" />
+			<max value="1" />
+		</param>
+
+		<param type="numeric" name="max_acl" default="3" label="max_acl" hint="Sets the max_acl">
+			<min value="0" />
+			<max value="3" />
+		</param>
+
+		<param type="text" name="robot" default="" label="robot" hint="Sets the robot" />
+
+	</params>
+
+
+</behavior>
