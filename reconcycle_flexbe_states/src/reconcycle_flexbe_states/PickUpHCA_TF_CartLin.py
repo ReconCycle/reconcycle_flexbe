@@ -9,7 +9,7 @@ import tf.transformations as tft
 import numpy as np
 import quaternion as qt
 
-class CallActionTFCartLin(EventState):
+class PickUpHCACartLin(EventState):
     
     '''
     Implements a state that reads Pose() from input and sends them to ns/cart_lin_action_server
@@ -23,8 +23,8 @@ class CallActionTFCartLin(EventState):
     <= failed                           Failed
     '''
 
-    def __init__(self, namespace, exe_time, local_offset=0, global_pos_offset=0, limit_rotations=False):
-        super(CallActionTFCartLin, self).__init__(outcomes = ['continue', 'failed'], input_keys = ['t2_data'], output_keys = ['t2_out'])
+    def __init__(self, namespace, exe_time, local_offset=0, global_pos_offset=0, limit_rotations=False, soft_hand_offset=None):
+        super(PickUpHCACartLin, self).__init__(outcomes = ['continue', 'failed'], input_keys = ['t2_data'], output_keys = ['t2_out'])
         
         rospy.loginfo('__init__ callback happened.')   
         
@@ -37,6 +37,7 @@ class CallActionTFCartLin(EventState):
         self.local_offset = np.array(local_offset)
         self.global_pos_offset = np.array(global_pos_offset)
         self.limit_rotations = limit_rotations
+        self.soft_hand_offset = soft_hand_offset
         self.H = np.zeros((4, 4))
         self.H[-1, -1] = 1.0
         self.R = np.eye(4)
@@ -68,8 +69,18 @@ class CallActionTFCartLin(EventState):
             qt.from_euler_angles(np.deg2rad(self.local_offset[3:])))
         self.R[:3, -1] = self.local_offset[:3]
         
+        if self.soft_hand_offset is not None:
+            self.soft_hand_offset = np.array(self.soft_hand_offset)
+            soft_hand_rot = np.array(self.soft_hand_offset[1])
+            orientation = orientation * qt.from_float_array(soft_hand_rot[[3,0,1,2]])
+            self.R[:3, -1] = self.R[:3, -1] - self.soft_hand_offset[0]
+        
         eulers = qt.as_euler_angles(orientation)
         Logger.loginfo("Local eulers: {}".format(eulers))
+
+        if eulers[2] < -2:
+            eulers[2] += 3.14
+            orientation = qt.from_euler_angles(eulers)
 
         self.H[:3, :3] = qt.as_rotation_matrix(orientation)
         self.H[:3, -1] = old_position

@@ -44,6 +44,7 @@ class ReadNextVisionAction(EventState):
                 Logger.loginfo("{}".format(state))
                 if state[0:3] == action:
                     userdata.action = state
+                    Logger.loginfo("Setting userdata")
                     return state[3]
 			
     def on_enter(self, userdata):

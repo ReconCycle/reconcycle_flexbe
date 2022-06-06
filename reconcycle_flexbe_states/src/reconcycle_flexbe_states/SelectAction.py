@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-class SelectAction(EventState):
+class ReadAction(EventState):
     '''
     Implements a state for selecting action outcome.
     [...]       
@@ -19,9 +19,10 @@ class SelectAction(EventState):
     '''
     
     def __init__(self):
-        super(SelectAction, self).__init__(outcomes = ['move', 'cut', 'lever',
-                                                       'turn_over', 'remove_clip'],
-                                           output_keys = ['action'])
+        super(ReadAction, self).__init__(outcomes = ['move', 'cut', 'lever',
+                                                     'turn_over', 'remove_clip'],
+                                         input_keys = ['action'],
+                                         output_keys = ['action_out'])
 
     def execute(self, userdata):
         action = userdata.action
