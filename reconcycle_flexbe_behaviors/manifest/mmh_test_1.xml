@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="MMH_Test_1">
+
+	<executable package_path="reconcycle_flexbe_behaviors.mmh_test_1_sm" class="MMH_Test_1SM" />
+	<tagstring>Test_1</tagstring>
+	<author>Matevz M.H.</author>
+	<date>Thu Jul 21 2022</date>
+	<description>
+		First attempt to flexbe
+	</description>
+
+
+	<!-- Contained Behaviors -->
+	<contains name="Generic disassembly protocol" />
+
+	<!-- Available Parameters -->
+
+</behavior>

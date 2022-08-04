@@ -109,7 +109,7 @@ if __name__ == '__main__':
             self.goal_claw_acc = [acc, acc]
             self.goal_claw_effort = [eff, eff]
 
-    usertest = userdata(pos = 0.1, vel = 0.1, acc = 0.1, eff = 0.1)
+    usertest = userdata(pos = -0.5, vel = 0.1, acc = 0.1, eff = 0.1)
     rospy.init_node('test_node_qbsoftclaw')
     test_state = MoveSoftClaw(motion_duration= 1)
     test_state.on_enter(usertest)

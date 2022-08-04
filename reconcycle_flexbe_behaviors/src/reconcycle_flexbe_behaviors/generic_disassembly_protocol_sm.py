@@ -67,8 +67,10 @@ class GenericdisassemblyprotocolSM(Behavior):
 	def create(self):
 		soft_hand_quat_offset = [0.888, 0.458, 0.020, -0.044]
 		soft_hand_pos_offset = [0.01, -0.05, 0.0]
-		pin_x = 0.004
-		pin_y = -0.001
+		pin_x = 0.007
+		pin_y = -0.003
+		pin_x_vsa = 0
+		pin_y_vsa = 0
 		# x:918 y:239, x:382 y:312
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
 		_state_machine.userdata.true = True
@@ -79,7 +81,7 @@ class GenericdisassemblyprotocolSM(Behavior):
 		_state_machine.userdata.safe_position_name = "tmp"
 		_state_machine.userdata.grab_pos = [0.8]
 		_state_machine.userdata.soft_grab_pos = [0.9]
-		_state_machine.userdata.j_push_pose = "panda_2/joints/pin_push"
+		_state_machine.userdata.j_push_pose = "anda_2/joints/pin_push_vsa"
 		_state_machine.userdata.j_above_vision = "panda_1/joints/above_vision"
 		_state_machine.userdata.j_between_slider = "tmp"
 		_state_machine.userdata.j_above_slider = "tmp"
@@ -97,9 +99,62 @@ class GenericdisassemblyprotocolSM(Behavior):
 		# [/MANUAL_CREATE]
 
 		# x:30 y:365, x:130 y:365
-		_sm_rotate_down_and_up_0 = OperatableStateMachine(outcomes=['failed', 'done'], input_keys=['true', 'false'])
+		_sm_start_joint_impedance_controller_2_0 = OperatableStateMachine(outcomes=['finished', 'failed'])
 
-		with _sm_rotate_down_and_up_0:
+		with _sm_start_joint_impedance_controller_2_0:
+			# x:511 y:54
+			OperatableStateMachine.add('switch_on_controller',
+										SwitchControllerProxyClient(robot_name="panda_2", start_controller=["joint_impedance_controller"], stop_controller=["cartesian_impedance_controller"], strictness=1),
+										transitions={'continue': 'wait1', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:81 y:195
+			OperatableStateMachine.add('load_joint_controller',
+										LoadControllerProxyClient(desired_controller="joint_impedance_controller", robot_name="panda_2"),
+										transitions={'continue': 'switch_on_controller', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:437 y:336
+			OperatableStateMachine.add('unload_cartesian_controller',
+										UnloadControllerProxyClient(desired_controller="cartesian_impedance_controller", robot_name="panda_1"),
+										transitions={'continue': 'finished', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:493 y:139
+			OperatableStateMachine.add('wait1',
+										WaitState(wait_time=1),
+										transitions={'done': 'finished'},
+										autonomy={'done': Autonomy.Off})
+
+			# x:73 y:108
+			OperatableStateMachine.add('find_active_controller',
+										ActiveControllerProxyClient(robot_name="panda_1", real_controllers="cartesian_impedance_controller"),
+										transitions={'continue': 'load_joint_controller', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'active_controller': 'active_controller'})
+
+
+		# x:30 y:365, x:130 y:365
+		_sm_start_cartesian_impedance_controller_1 = OperatableStateMachine(outcomes=['continue', 'failed'])
+
+		with _sm_start_cartesian_impedance_controller_1:
+			# x:30 y:40
+			OperatableStateMachine.add('switch_on_controller',
+										SwitchControllerProxyClient(robot_name='panda_2', start_controller=["cartesian_impedance_controller"], stop_controller=["joint_impedance_controller"], strictness=2),
+										transitions={'continue': 'set_cart_compliance', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:134 y:111
+			OperatableStateMachine.add('set_cart_compliance',
+										SetReconcycleCartesianCompliance(robot_name="panda_2", Kp=[self.Kp,self.Kp,self.Kp], Kr=[self.Kr,self.Kr,self.Kr]),
+										transitions={'continue': 'continue', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
+
+
+		# x:30 y:365, x:130 y:365
+		_sm_rotate_down_and_up_2 = OperatableStateMachine(outcomes=['failed', 'done'], input_keys=['true', 'false'])
+
+		with _sm_rotate_down_and_up_2:
 			# x:492 y:105
 			OperatableStateMachine.add('Rotate holder down',
 										ActivateRaspiDigitalOuput(service_name="/obr_rotate"),
@@ -128,9 +183,9 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_start_joint_impedance_controller_1 = OperatableStateMachine(outcomes=['finished', 'failed'])
+		_sm_start_joint_impedance_controller_3 = OperatableStateMachine(outcomes=['finished', 'failed'])
 
-		with _sm_start_joint_impedance_controller_1:
+		with _sm_start_joint_impedance_controller_3:
 			# x:511 y:54
 			OperatableStateMachine.add('switch_on_controller',
 										SwitchControllerProxyClient(robot_name="panda_2", start_controller=["joint_impedance_controller"], stop_controller=[self.cartesian_controller], strictness=1),
@@ -158,12 +213,12 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_return_panda_2_to_init_2 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['j_init2_pose'])
+		_sm_return_panda_2_to_init_4 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['j_init2_pose'])
 
-		with _sm_return_panda_2_to_init_2:
+		with _sm_return_panda_2_to_init_4:
 			# x:30 y:40
 			OperatableStateMachine.add('Start joint impedance controller',
-										_sm_start_joint_impedance_controller_1,
+										_sm_start_joint_impedance_controller_3,
 										transitions={'finished': 'Read init2', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
@@ -183,19 +238,18 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 
 		# x:414 y:254, x:553 y:619
-		_sm_push_pin_out_3 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['j_push_pose', 'offset', 'rotation', 'true', 'j_init2_pose', 'false'])
+		_sm_push_pin_out_5 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['j_push_pose', 'offset', 'rotation', 'true', 'j_init2_pose', 'false'])
 
-		with _sm_push_pin_out_3:
-			# x:49 y:40
-			OperatableStateMachine.add('Read push',
-										ReadFromMongo(),
-										transitions={'continue': 'move push', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'entry_name': 'j_push_pose', 'joints_data': 'mdb_push_pose'})
+		with _sm_push_pin_out_5:
+			# x:29 y:141
+			OperatableStateMachine.add('Start joint impedance controller_2',
+										_sm_start_joint_impedance_controller_2_0,
+										transitions={'finished': 'Read push', 'failed': 'failed'},
+										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
 			# x:1025 y:430
 			OperatableStateMachine.add('Move push BACK',
-										CallActionTFCartLin(namespace='panda_2', exe_time=3, local_offset=[pin_x,pin_y,-0.07,0,0,0], global_pos_offset=0, limit_rotations=False),
+										CallActionTFCartLin(namespace='panda_2', exe_time=3, local_offset=[pin_x_vsa,pin_y_vsa,-0.05,0,0,0], global_pos_offset=0, limit_rotations=False),
 										transitions={'continue': 'Read back', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_push', 't2_out': 't2_out'})
@@ -209,7 +263,7 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 			# x:1020 y:227
 			OperatableStateMachine.add('Move push TF',
-										CallActionTFCartLin(namespace='panda_2', exe_time=3, local_offset=[pin_x,pin_y,0.002,0,0,0], global_pos_offset=0, limit_rotations=False),
+										CallActionTFCartLin(namespace='panda_2', exe_time=3, local_offset=[pin_x_vsa,pin_y_vsa,-0.01,0,0,0], global_pos_offset=0, limit_rotations=False),
 										transitions={'continue': 'Move push ALL THE WAY', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_push', 't2_out': 't2_out'})
@@ -221,35 +275,48 @@ class GenericdisassemblyprotocolSM(Behavior):
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'offset': 'offset', 'rotation': 'rotation', 't2_data': 'tf_push_back'})
 
+			# x:49 y:40
+			OperatableStateMachine.add('Read push',
+										ReadFromMongo(),
+										transitions={'continue': 'move push', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'entry_name': 'j_push_pose', 'joints_data': 'mdb_push_pose'})
+
 			# x:1046 y:133
 			OperatableStateMachine.add('Read push TF',
-										ReadTFCartLin(target_frame='panda_2/pose/pin_push', source_frame='panda_2/panda_2_link0'),
+										ReadTFCartLin(target_frame='panda_2/pose/pin_push_vsa', source_frame='panda_2/panda_2_link0'),
 										transitions={'continue': 'Move push TF', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'offset': 'offset', 'rotation': 'rotation', 't2_data': 'tf_push'})
 
 			# x:731 y:446
 			OperatableStateMachine.add('Return panda_2 to init',
-										_sm_return_panda_2_to_init_2,
+										_sm_return_panda_2_to_init_4,
 										transitions={'failed': 'failed', 'continue': 'open'},
 										autonomy={'failed': Autonomy.Inherit, 'continue': Autonomy.Inherit},
 										remapping={'j_init2_pose': 'j_init2_pose'})
 
 			# x:291 y:462
 			OperatableStateMachine.add('Rotate down and up',
-										_sm_rotate_down_and_up_0,
+										_sm_rotate_down_and_up_2,
 										transitions={'failed': 'failed', 'done': 'continue'},
 										autonomy={'failed': Autonomy.Inherit, 'done': Autonomy.Inherit},
 										remapping={'true': 'true', 'false': 'false'})
 
-			# x:394 y:32
+			# x:720 y:12
+			OperatableStateMachine.add('Start cartesian impedance controller',
+										_sm_start_cartesian_impedance_controller_1,
+										transitions={'continue': 'Read push TF', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Inherit, 'failed': Autonomy.Inherit})
+
+			# x:470 y:27
 			OperatableStateMachine.add('close',
 										ActivateRaspiDigitalOuput(service_name="/obr_activate"),
-										transitions={'continue': 'switch_on_controller', 'failed': 'failed'},
+										transitions={'continue': 'Start cartesian impedance controller', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'value': 'true', 'success': 'success'})
 
-			# x:217 y:32
+			# x:266 y:33
 			OperatableStateMachine.add('move push',
 										CallJointTrap(max_vel=self.max_vel, max_acl=self.max_acl, namespace="panda_2"),
 										transitions={'continue': 'close', 'failed': 'failed'},
@@ -263,36 +330,18 @@ class GenericdisassemblyprotocolSM(Behavior):
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'value': 'false', 'success': 'success'})
 
-			# x:771 y:32
-			OperatableStateMachine.add('set_cart_compliance',
-										SetReconcycleCartesianCompliance(robot_name="panda_2", Kp=[self.Kp,self.Kp,self.Kp], Kr=[self.Kr,self.Kr,self.Kr]),
-										transitions={'continue': 'wait1', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
-
-			# x:573 y:31
-			OperatableStateMachine.add('switch_on_controller',
-										SwitchControllerProxyClient(robot_name='panda_2', start_controller=[self.cartesian_controller], stop_controller=["joint_impedance_controller"], strictness=2),
-										transitions={'continue': 'set_cart_compliance', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
-
-			# x:1037 y:27
-			OperatableStateMachine.add('wait1',
-										WaitState(wait_time=1),
-										transitions={'done': 'Read push TF'},
-										autonomy={'done': Autonomy.Off})
-
 			# x:1017 y:320
 			OperatableStateMachine.add('Move push ALL THE WAY',
-										CallActionTFCartLin(namespace='panda_2', exe_time=0.2, local_offset=[pin_x,pin_y,0.017,0,0,0], global_pos_offset=0, limit_rotations=False),
+										CallActionTFCartLin(namespace='panda_2', exe_time=0.2, local_offset=[pin_x_vsa,pin_y_vsa,0.00,0,0,0], global_pos_offset=0, limit_rotations=False),
 										transitions={'continue': 'Move push BACK', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_push', 't2_out': 't2_out'})
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_start_cartesian_imp_controller_4 = OperatableStateMachine(outcomes=['finished', 'failed'])
+		_sm_start_cartesian_imp_controller_6 = OperatableStateMachine(outcomes=['finished', 'failed'])
 
-		with _sm_start_cartesian_imp_controller_4:
+		with _sm_start_cartesian_imp_controller_6:
 			# x:217 y:35
 			OperatableStateMachine.add('switch_on_controller',
 										SwitchControllerProxyClient(robot_name="panda_1", start_controller=[self.cartesian_controller], stop_controller=["joint_impedance_controller"], strictness=1),
@@ -313,9 +362,9 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_start_joint_impedance_controller_5 = OperatableStateMachine(outcomes=['finished', 'failed'])
+		_sm_start_joint_impedance_controller_7 = OperatableStateMachine(outcomes=['finished', 'failed'])
 
-		with _sm_start_joint_impedance_controller_5:
+		with _sm_start_joint_impedance_controller_7:
 			# x:511 y:54
 			OperatableStateMachine.add('switch_on_controller',
 										SwitchControllerProxyClient(robot_name="panda_1", start_controller=["joint_impedance_controller"], stop_controller=[self.cartesian_controller], strictness=1),
@@ -349,9 +398,9 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_start_cartesian_imp_controller_6 = OperatableStateMachine(outcomes=['finished', 'failed'])
+		_sm_start_cartesian_imp_controller_8 = OperatableStateMachine(outcomes=['finished', 'failed'])
 
-		with _sm_start_cartesian_imp_controller_6:
+		with _sm_start_cartesian_imp_controller_8:
 			# x:217 y:35
 			OperatableStateMachine.add('switch_on_controller',
 										SwitchControllerProxyClient(robot_name="panda_1", start_controller=[self.cartesian_controller], stop_controller=["joint_impedance_controller"], strictness=1),
@@ -372,9 +421,9 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_start_joint_impedance_controller_7 = OperatableStateMachine(outcomes=['finished', 'failed'])
+		_sm_start_joint_impedance_controller_9 = OperatableStateMachine(outcomes=['finished', 'failed'])
 
-		with _sm_start_joint_impedance_controller_7:
+		with _sm_start_joint_impedance_controller_9:
 			# x:511 y:54
 			OperatableStateMachine.add('switch_on_controller',
 										SwitchControllerProxyClient(robot_name="panda_1", start_controller=["joint_impedance_controller"], stop_controller=[self.cartesian_controller], strictness=1),
@@ -402,9 +451,9 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:358 y:357
-		_sm_place_hca_on_slider_8 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['j_above_table', 'j_between_slider', 'j_above_slider', 'j_slightly_above_slider', 'release_pos', 'offset', 'rotation', 'j_above_holder'])
+		_sm_place_hca_on_slider_10 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['j_above_table', 'j_between_slider', 'j_above_slider', 'j_slightly_above_slider', 'release_pos', 'offset', 'rotation', 'j_above_holder'])
 
-		with _sm_place_hca_on_slider_8:
+		with _sm_place_hca_on_slider_10:
 			# x:747 y:104
 			OperatableStateMachine.add('read_j_above_holder',
 										ReadFromMongo(),
@@ -421,7 +470,7 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 			# x:391 y:519
 			OperatableStateMachine.add('Start joint impedance controller',
-										_sm_start_joint_impedance_controller_7,
+										_sm_start_joint_impedance_controller_9,
 										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
@@ -462,22 +511,22 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 			# x:726 y:260
 			OperatableStateMachine.add('start_cartesian_imp_controller',
-										_sm_start_cartesian_imp_controller_6,
+										_sm_start_cartesian_imp_controller_8,
 										transitions={'finished': 'Read above holder TF', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
 			# x:885 y:456
 			OperatableStateMachine.add('Move above holder TF',
-										CallActionTFCartLin(namespace='panda_1', exe_time=2, local_offset=[0,0.01,0,0,0,0], global_pos_offset=[0,0,0.01], limit_rotations=False),
+										CallActionTFCartLin(namespace='panda_1', exe_time=2, local_offset=[-0.01,0.01,0.01,0,0,0], global_pos_offset=[0,0,0.01], limit_rotations=False),
 										transitions={'continue': 'release object', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_above_holder', 't2_out': 't2_out'})
 
 
 		# x:30 y:365, x:237 y:81
-		_sm_move_above_vision_table_9 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['j_above_vision'])
+		_sm_move_above_vision_table_11 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['j_above_vision'])
 
-		with _sm_move_above_vision_table_9:
+		with _sm_move_above_vision_table_11:
 			# x:44 y:40
 			OperatableStateMachine.add('read_j_above_vision',
 										ReadFromMongo(),
@@ -494,9 +543,9 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 
 		# x:504 y:546, x:366 y:236
-		_sm_move_above_hca_and_pickup_10 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['offset', 'rotation', 'tf_pickup_pose', 'grab_pos', 'soft_grab_pos'])
+		_sm_move_above_hca_and_pickup_12 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['offset', 'rotation', 'tf_pickup_pose', 'grab_pos', 'soft_grab_pos'])
 
-		with _sm_move_above_hca_and_pickup_10:
+		with _sm_move_above_hca_and_pickup_12:
 			# x:615 y:48
 			OperatableStateMachine.add('Move above HCA',
 										PickUpHCACartLin(namespace="panda_1", exe_time=2, local_offset=0, global_pos_offset=[0,0,0.2], limit_rotations=False, soft_hand_offset=[soft_hand_pos_offset, soft_hand_quat_offset]),
@@ -527,9 +576,9 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 
 		# x:439 y:270, x:184 y:171
-		_sm_close_vise_11 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['true', 'false', 'value'])
+		_sm_close_vise_13 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['true', 'false', 'value'])
 
-		with _sm_close_vise_11:
+		with _sm_close_vise_13:
 			# x:47 y:42
 			OperatableStateMachine.add('move_slider_back',
 										ActivateRaspiDigitalOuput(service_name="/move_slide"),
@@ -552,33 +601,33 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 
 		# x:351 y:239, x:130 y:365
-		_sm_pick_up_hca_and_put_into_vise_12 = OperatableStateMachine(outcomes=['failed', 'finished'], input_keys=['offset', 'rotation', 'tf_pickup_pose', 'grab_pos', 'soft_grab_pos', 'j_above_slider', 'j_slightly_above_slider', 'release_pos', 'true', 'false', 'j_between_slider', 'j_above_vision', 'j_above_holder', 'j_above_table', 'j_init_pose'])
+		_sm_pick_up_hca_and_put_into_vise_14 = OperatableStateMachine(outcomes=['failed', 'finished'], input_keys=['offset', 'rotation', 'tf_pickup_pose', 'grab_pos', 'soft_grab_pos', 'j_above_slider', 'j_slightly_above_slider', 'release_pos', 'true', 'false', 'j_between_slider', 'j_above_vision', 'j_above_holder', 'j_above_table', 'j_init_pose'])
 
-		with _sm_pick_up_hca_and_put_into_vise_12:
+		with _sm_pick_up_hca_and_put_into_vise_14:
 			# x:58 y:166
 			OperatableStateMachine.add('Move above vision table',
-										_sm_move_above_vision_table_9,
+										_sm_move_above_vision_table_11,
 										transitions={'finished': 'start_cartesian_imp_controller', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'j_above_vision': 'j_above_vision'})
 
 			# x:444 y:63
 			OperatableStateMachine.add('Move above HCA and pickup',
-										_sm_move_above_hca_and_pickup_10,
+										_sm_move_above_hca_and_pickup_12,
 										transitions={'finished': 'Start joint impedance controller', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'offset': 'offset', 'rotation': 'rotation', 'tf_pickup_pose': 'tf_pickup_pose', 'grab_pos': 'grab_pos', 'soft_grab_pos': 'soft_grab_pos'})
 
-			# x:550 y:286
+			# x:549 y:274
 			OperatableStateMachine.add('Place HCA on slider',
-										_sm_place_hca_on_slider_8,
+										_sm_place_hca_on_slider_10,
 										transitions={'finished': 'read_j_init', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'j_above_table': 'j_above_table', 'j_between_slider': 'j_between_slider', 'j_above_slider': 'j_above_slider', 'j_slightly_above_slider': 'j_slightly_above_slider', 'release_pos': 'release_pos', 'offset': 'offset', 'rotation': 'rotation', 'j_above_holder': 'j_above_holder'})
 
-			# x:504 y:169
+			# x:501 y:179
 			OperatableStateMachine.add('Start joint impedance controller',
-										_sm_start_joint_impedance_controller_5,
+										_sm_start_joint_impedance_controller_7,
 										transitions={'finished': 'Place HCA on slider', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
@@ -598,22 +647,22 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 			# x:169 y:73
 			OperatableStateMachine.add('start_cartesian_imp_controller',
-										_sm_start_cartesian_imp_controller_4,
+										_sm_start_cartesian_imp_controller_6,
 										transitions={'finished': 'Move above HCA and pickup', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
 			# x:384 y:575
 			OperatableStateMachine.add('Close vise',
-										_sm_close_vise_11,
+										_sm_close_vise_13,
 										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'true': 'true', 'false': 'false', 'value': 'false'})
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_start_joint_impedance_controller_2_13 = OperatableStateMachine(outcomes=['finished', 'failed'])
+		_sm_start_joint_impedance_controller_2_15 = OperatableStateMachine(outcomes=['finished', 'failed'])
 
-		with _sm_start_joint_impedance_controller_2_13:
+		with _sm_start_joint_impedance_controller_2_15:
 			# x:511 y:54
 			OperatableStateMachine.add('switch_on_controller',
 										SwitchControllerProxyClient(robot_name="panda_2", start_controller=["joint_impedance_controller"], stop_controller=[self.cartesian_controller], strictness=1),
@@ -647,12 +696,12 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_start_joint_impedance_controller_14 = OperatableStateMachine(outcomes=['finished', 'failed'])
+		_sm_start_joint_impedance_controller_16 = OperatableStateMachine(outcomes=['finished', 'failed'])
 
-		with _sm_start_joint_impedance_controller_14:
+		with _sm_start_joint_impedance_controller_16:
 			# x:511 y:54
 			OperatableStateMachine.add('switch_on_controller',
-										SwitchControllerProxyClient(robot_name="panda_2", start_controller=["joint_impedance_controller"], stop_controller=[self.cartesian_controller], strictness=1),
+										SwitchControllerProxyClient(robot_name="panda_2", start_controller=["joint_impedance_controller"], stop_controller=["cartesian_impedance_controller"], strictness=1),
 										transitions={'continue': 'wait1', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
 
@@ -683,9 +732,9 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_start_cartesian_impedance_controller_15 = OperatableStateMachine(outcomes=['continue', 'failed'])
+		_sm_start_cartesian_impedance_controller_17 = OperatableStateMachine(outcomes=['continue', 'failed'])
 
-		with _sm_start_cartesian_impedance_controller_15:
+		with _sm_start_cartesian_impedance_controller_17:
 			# x:30 y:40
 			OperatableStateMachine.add('switch_on_controller',
 										SwitchControllerProxyClient(robot_name='panda_2', start_controller=["cartesian_impedance_controller"], stop_controller=["joint_impedance_controller"], strictness=2),
@@ -700,9 +749,9 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_move_to_safe_location_2_16 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['j_init2_pose'])
+		_sm_move_to_safe_location_2_18 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['j_init2_pose'])
 
-		with _sm_move_to_safe_location_2_16:
+		with _sm_move_to_safe_location_2_18:
 			# x:182 y:50
 			OperatableStateMachine.add('Read robot position',
 										ReadFromMongo(),
@@ -719,9 +768,9 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_move_above_lever_17 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['j_lever_pose'])
+		_sm_move_above_lever_19 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['j_lever_pose'])
 
-		with _sm_move_above_lever_17:
+		with _sm_move_above_lever_19:
 			# x:30 y:47
 			OperatableStateMachine.add('Read above lever',
 										ReadFromMongo(),
@@ -738,12 +787,12 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 
 		# x:705 y:492, x:390 y:205
-		_sm_levering_action_18 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['offset', 'rotation', 'safe_position_name', 'j_lever_pose', 'j_init2_pose'])
+		_sm_levering_action_20 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['offset', 'rotation', 'safe_position_name', 'j_lever_pose', 'j_init2_pose'])
 
-		with _sm_levering_action_18:
+		with _sm_levering_action_20:
 			# x:30 y:166
 			OperatableStateMachine.add('Start joint impedance controller',
-										_sm_start_joint_impedance_controller_14,
+										_sm_start_joint_impedance_controller_16,
 										transitions={'finished': 'Move above lever', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
@@ -763,21 +812,21 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 			# x:874 y:247
 			OperatableStateMachine.add('Move to gap pose',
-										CallActionTFCartLin(namespace="panda_2", exe_time=3, local_offset=0, global_pos_offset=[0.01,0,0], limit_rotations=False),
+										CallActionTFCartLin(namespace="panda_2", exe_time=2, local_offset=0, global_pos_offset=[0.01,0,0], limit_rotations=False),
 										transitions={'continue': 'Move to levered pose', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_gap', 't2_out': 't2_out'})
 
 			# x:861 y:315
 			OperatableStateMachine.add('Move to levered pose',
-										CallActionTFCartLin(namespace="panda_2", exe_time=3, local_offset=0, global_pos_offset=0, limit_rotations=False),
+										CallActionTFCartLin(namespace="panda_2", exe_time=2, local_offset=0, global_pos_offset=[0,0,-0.006], limit_rotations=False),
 										transitions={'continue': 'Move to above levered pose', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'t2_data': 'tf_levered_out', 't2_out': 't2_out'})
 
 			# x:282 y:553
 			OperatableStateMachine.add('Move to safe location_2',
-										_sm_move_to_safe_location_2_16,
+										_sm_move_to_safe_location_2_18,
 										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'j_init2_pose': 'j_init2_pose'})
@@ -798,29 +847,29 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 			# x:693 y:26
 			OperatableStateMachine.add('Start cartesian impedance controller',
-										_sm_start_cartesian_impedance_controller_15,
+										_sm_start_cartesian_impedance_controller_17,
 										transitions={'continue': 'Read levered pose', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
 			# x:417 y:426
 			OperatableStateMachine.add('Start joint impedance controller_2',
-										_sm_start_joint_impedance_controller_2_13,
+										_sm_start_joint_impedance_controller_2_15,
 										transitions={'finished': 'Move to safe location_2', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
 			# x:119 y:33
 			OperatableStateMachine.add('Move above lever',
-										_sm_move_above_lever_17,
+										_sm_move_above_lever_19,
 										transitions={'failed': 'failed', 'continue': 'Read gap pose'},
 										autonomy={'failed': Autonomy.Inherit, 'continue': Autonomy.Inherit},
 										remapping={'j_lever_pose': 'j_lever_pose'})
 
 
 		# x:984 y:145, x:415 y:316
-		_sm_push_or_lever_19 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['offset', 'rotation', 'true', 'false', 'j_push_pose', 'safe_position_name', 'grab_pos', 'release_pos', 'soft_grab_pos', 'j_above_slider', 'j_slightly_above_slider', 'j_between_slider', 'j_above_vision', 'j_above_holder', 'j_above_table', 'j_init_pose', 'j_init2_pose', 'j_lever_pose', 'action'])
+		_sm_push_or_lever_21 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['offset', 'rotation', 'true', 'false', 'j_push_pose', 'safe_position_name', 'grab_pos', 'release_pos', 'soft_grab_pos', 'j_above_slider', 'j_slightly_above_slider', 'j_between_slider', 'j_above_vision', 'j_above_holder', 'j_above_table', 'j_init_pose', 'j_init2_pose', 'j_lever_pose', 'action'])
 
-		with _sm_push_or_lever_19:
-			# x:66 y:33
+		with _sm_push_or_lever_21:
+			# x:68 y:109
 			OperatableStateMachine.add('Read HCA TF',
 										ReadTFHCA(target_frame="hca_back_vision_table_zero", source_frame="panda_1/panda_1_link0"),
 										transitions={'continue': 'Pick up HCA and put into vise', 'failed': 'failed'},
@@ -829,15 +878,15 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 			# x:277 y:28
 			OperatableStateMachine.add('Pick up HCA and put into vise',
-										_sm_pick_up_hca_and_put_into_vise_12,
+										_sm_pick_up_hca_and_put_into_vise_14,
 										transitions={'failed': 'failed', 'finished': 'Read action'},
 										autonomy={'failed': Autonomy.Inherit, 'finished': Autonomy.Inherit},
 										remapping={'offset': 'offset', 'rotation': 'rotation', 'tf_pickup_pose': 'tf_pickup_pose', 'grab_pos': 'grab_pos', 'soft_grab_pos': 'soft_grab_pos', 'j_above_slider': 'j_above_slider', 'j_slightly_above_slider': 'j_slightly_above_slider', 'release_pos': 'release_pos', 'true': 'true', 'false': 'false', 'j_between_slider': 'j_between_slider', 'j_above_vision': 'j_above_vision', 'j_above_holder': 'j_above_holder', 'j_above_table': 'j_above_table', 'j_init_pose': 'j_init_pose'})
 
 			# x:804 y:83
 			OperatableStateMachine.add('Push pin out',
-										_sm_push_pin_out_3,
-										transitions={'failed': 'failed', 'continue': 'finished'},
+										_sm_push_pin_out_5,
+										transitions={'failed': 'failed', 'continue': 'Levering action'},
 										autonomy={'failed': Autonomy.Inherit, 'continue': Autonomy.Inherit},
 										remapping={'j_push_pose': 'j_push_pose', 'offset': 'offset', 'rotation': 'rotation', 'true': 'true', 'j_init2_pose': 'j_init2_pose', 'false': 'false'})
 
@@ -850,16 +899,16 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 			# x:814 y:267
 			OperatableStateMachine.add('Levering action',
-										_sm_levering_action_18,
+										_sm_levering_action_20,
 										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'offset': 'offset', 'rotation': 'rotation', 'safe_position_name': 'safe_position_name', 'j_lever_pose': 'j_lever_pose', 'j_init2_pose': 'j_init2_pose'})
 
 
 		# x:250 y:260, x:576 y:264
-		_sm_initial_action_20 = OperatableStateMachine(outcomes=['failed', 'finished'], input_keys=['true', 'false', 'offset', 'rotation', 'safe_position_name', 'grab_pos', 'soft_grab_pos', 'release_pos', 'j_push_pose', 'j_above_slider', 'j_slightly_above_slider', 'j_between_slider', 'j_above_vision', 'j_above_holder', 'j_above_table', 'j_init_pose', 'j_init2_pose', 'j_lever_pose'])
+		_sm_initial_action_22 = OperatableStateMachine(outcomes=['failed', 'finished'], input_keys=['true', 'false', 'offset', 'rotation', 'safe_position_name', 'grab_pos', 'soft_grab_pos', 'release_pos', 'j_push_pose', 'j_above_slider', 'j_slightly_above_slider', 'j_between_slider', 'j_above_vision', 'j_above_holder', 'j_above_table', 'j_init_pose', 'j_init2_pose', 'j_lever_pose'])
 
-		with _sm_initial_action_20:
+		with _sm_initial_action_22:
 			# x:150 y:57
 			OperatableStateMachine.add('Read recommended action',
 										ReadNextVisionAction(),
@@ -869,16 +918,16 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 			# x:711 y:54
 			OperatableStateMachine.add('Push or lever',
-										_sm_push_or_lever_19,
+										_sm_push_or_lever_21,
 										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'offset': 'offset', 'rotation': 'rotation', 'true': 'true', 'false': 'false', 'j_push_pose': 'j_push_pose', 'safe_position_name': 'safe_position_name', 'grab_pos': 'grab_pos', 'release_pos': 'release_pos', 'soft_grab_pos': 'soft_grab_pos', 'j_above_slider': 'j_above_slider', 'j_slightly_above_slider': 'j_slightly_above_slider', 'j_between_slider': 'j_between_slider', 'j_above_vision': 'j_above_vision', 'j_above_holder': 'j_above_holder', 'j_above_table': 'j_above_table', 'j_init_pose': 'j_init_pose', 'j_init2_pose': 'j_init2_pose', 'j_lever_pose': 'j_lever_pose', 'action': 'action'})
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_initialize_holder_and_slider_21 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['false', 'true', 'value'])
+		_sm_initialize_holder_and_slider_23 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['false', 'true', 'value'])
 
-		with _sm_initialize_holder_and_slider_21:
+		with _sm_initialize_holder_and_slider_23:
 			# x:388 y:442
 			OperatableStateMachine.add('Open holder',
 										ActivateRaspiDigitalOuput(service_name="/obr_activate"),
@@ -928,9 +977,9 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_initalize_controllers_2_22 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['j_init2_pose'])
+		_sm_initalize_controllers_2_24 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['j_init2_pose'])
 
-		with _sm_initalize_controllers_2_22:
+		with _sm_initalize_controllers_2_24:
 			# x:54 y:37
 			OperatableStateMachine.add('Error recovery',
 										FrankaErrorRecoveryActionProxy(robot_name="panda_2"),
@@ -971,9 +1020,9 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_initalize_controllers_23 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['j_init_pose'])
+		_sm_initalize_controllers_25 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['j_init_pose'])
 
-		with _sm_initalize_controllers_23:
+		with _sm_initalize_controllers_25:
 			# x:54 y:37
 			OperatableStateMachine.add('Error recovery',
 										FrankaErrorRecoveryActionProxy(robot_name="panda_1"),
@@ -1014,41 +1063,41 @@ class GenericdisassemblyprotocolSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365, x:230 y:365, x:330 y:365
-		_sm_concurrent_init_24 = ConcurrencyContainer(outcomes=['failed', 'continue'], input_keys=['false', 'true', 'value', 'j_init_pose', 'open_pos', 'j_init2_pose'], conditions=[
+		_sm_concurrent_init_26 = ConcurrencyContainer(outcomes=['failed', 'continue'], input_keys=['false', 'true', 'value', 'j_init_pose', 'open_pos', 'j_init2_pose'], conditions=[
 										('continue', [('Initialize holder and slider', 'continue'), ('Initalize controllers', 'continue'), ('Initalize controllers_2', 'continue')]),
 										('failed', [('Initalize controllers', 'failed'), ('Initialize holder and slider', 'failed'), ('Initalize controllers_2', 'failed')])
 										])
 
-		with _sm_concurrent_init_24:
+		with _sm_concurrent_init_26:
 			# x:77 y:42
 			OperatableStateMachine.add('Initialize holder and slider',
-										_sm_initialize_holder_and_slider_21,
+										_sm_initialize_holder_and_slider_23,
 										transitions={'failed': 'failed', 'continue': 'continue'},
 										autonomy={'failed': Autonomy.Inherit, 'continue': Autonomy.Inherit},
 										remapping={'false': 'false', 'true': 'true', 'value': 'value'})
 
 			# x:325 y:117
 			OperatableStateMachine.add('Initalize controllers_2',
-										_sm_initalize_controllers_2_22,
+										_sm_initalize_controllers_2_24,
 										transitions={'failed': 'failed', 'continue': 'continue'},
 										autonomy={'failed': Autonomy.Inherit, 'continue': Autonomy.Inherit},
 										remapping={'j_init2_pose': 'j_init2_pose'})
 
 			# x:329 y:34
 			OperatableStateMachine.add('Initalize controllers',
-										_sm_initalize_controllers_23,
+										_sm_initalize_controllers_25,
 										transitions={'failed': 'failed', 'continue': 'continue'},
 										autonomy={'failed': Autonomy.Inherit, 'continue': Autonomy.Inherit},
 										remapping={'j_init_pose': 'j_init_pose'})
 
 
 		# x:648 y:224, x:130 y:365
-		_sm_cell_initialization_25 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['true', 'open_pos', 'value', 'false', 'j_init_pose', 'j_init2_pose'])
+		_sm_cell_initialization_27 = OperatableStateMachine(outcomes=['finished', 'failed'], input_keys=['true', 'open_pos', 'value', 'false', 'j_init_pose', 'j_init2_pose'])
 
-		with _sm_cell_initialization_25:
+		with _sm_cell_initialization_27:
 			# x:247 y:59
 			OperatableStateMachine.add('Concurrent init',
-										_sm_concurrent_init_24,
+										_sm_concurrent_init_26,
 										transitions={'failed': 'failed', 'continue': 'Open SoftHand'},
 										autonomy={'failed': Autonomy.Inherit, 'continue': Autonomy.Inherit},
 										remapping={'false': 'false', 'true': 'true', 'value': 'value', 'j_init_pose': 'j_init_pose', 'open_pos': 'open_pos', 'j_init2_pose': 'j_init2_pose'})
@@ -1065,14 +1114,14 @@ class GenericdisassemblyprotocolSM(Behavior):
 		with _state_machine:
 			# x:94 y:26
 			OperatableStateMachine.add('Cell initialization',
-										_sm_cell_initialization_25,
+										_sm_cell_initialization_27,
 										transitions={'finished': 'Initial action', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'true': 'true', 'open_pos': 'release_pos', 'value': 'true', 'false': 'false', 'j_init_pose': 'j_init_pose', 'j_init2_pose': 'j_init2_pose'})
 
 			# x:629 y:119
 			OperatableStateMachine.add('Initial action',
-										_sm_initial_action_20,
+										_sm_initial_action_22,
 										transitions={'failed': 'failed', 'finished': 'finished'},
 										autonomy={'failed': Autonomy.Inherit, 'finished': Autonomy.Inherit},
 										remapping={'true': 'true', 'false': 'false', 'offset': 'offset', 'rotation': 'rotation', 'safe_position_name': 'safe_position_name', 'grab_pos': 'grab_pos', 'soft_grab_pos': 'soft_grab_pos', 'release_pos': 'release_pos', 'j_push_pose': 'j_push_pose', 'j_above_slider': 'j_above_slider', 'j_slightly_above_slider': 'j_slightly_above_slider', 'j_between_slider': 'j_between_slider', 'j_above_vision': 'j_above_vision', 'j_above_holder': 'j_above_holder', 'j_above_table': 'j_above_table', 'j_init_pose': 'j_init_pose', 'j_init2_pose': 'j_init2_pose', 'j_lever_pose': 'j_lever_pose'})

@@ -23,7 +23,7 @@ class ReadNextVisionAction(EventState):
                                                                'turn_over', 'remove_clip'],
                                                    output_keys = ['action'])
 
-        self._topic = '/vision_pipeline/action'
+        self._topic = '/vision_pipeline_basler/action'
         self._sub = ProxySubscriberCached({self._topic: String})
         self._transition_table = [
             ["plastic_clip", "hca_back", "remove_clip", "remove_clip"],
