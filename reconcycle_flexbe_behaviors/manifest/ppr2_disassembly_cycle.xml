@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="PPR2 Disassembly Cycle">
+
+	<executable package_path="reconcycle_flexbe_behaviors.ppr2_disassembly_cycle_sm" class="PPR2DisassemblyCycleSM" />
+	<tagstring></tagstring>
+	<author>Boris Kuster</author>
+	<date>Mon Nov 14 2022</date>
+	<description>
+		Behavior for disassembly of both Qundis and Kalo 1.5 HCA types
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>

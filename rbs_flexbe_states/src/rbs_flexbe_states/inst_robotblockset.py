@@ -8,8 +8,19 @@ from flexbe_core.proxy import ProxyActionClient
 #from sensor_msgs.msg import JointState
 
 import time
-#from robot_module_msgs.msg import JointTrapVelAction,JointTrapVelGoal
+import numpy as np
+
+import rospy
+import warnings
+warnings.filterwarnings('ignore')
+
+from disassembly_pipeline.disassembly_cycle import Disassembly_cycle
+from disassembly_pipeline.cell_init_utils import CellManager
+from disassembly_pipeline.robot_init_utils import init_robot
+from disassembly_pipeline.multithreading import do_concurrently
+
 from robotblockset_python.panda_ros import panda_ros
+from robotblockset_python.grippers import VariableStiffnessGripper, SofthandGripper
 
 
 class Instantiate_robotblockset(EventState):
@@ -28,16 +39,66 @@ class Instantiate_robotblockset(EventState):
     
     #, input_keys = []
 
-    def __init__(self, robot_namespace):
-        super(Instantiate_robotblockset, self).__init__(outcomes = ['continue', 'failed'], output_keys = ['panda_1', 'panda_2'])
-
+    def __init__(self, cycle_speed):
+        super(Instantiate_robotblockset, self).__init__(outcomes = ['continue', 'failed'], output_keys = ['p1', 'p2', 'cy'])
+        
+        
         # replace 'panda_2/joint_trap_vel_action_server' from dummies with 'joint_trap_vel_action_server'
-        self._robot_namespace= robot_namespace
+                
+        # Panda 1 init
+        p1 = init_robot('panda_1', start_controller = 'joint_impedance_controller', init_node = False)
+        #p1.SetCollisionBehavior(F=50, T= 10, tq = 20)
+        sh_grp = SofthandGripper()
+        p1.gripper = sh_grp
+        p1.gripper.open()
+        p1.ResetCurrentTarget()
+        #p1.JMove(p1_q1_init, t = 2, max_vel=0.5, max_acc= 0.5)
+        #########
         
-        self.robot = panda_ros(name = self._robot_namespace, init_node = False)
+        # Panda 2 init
+        #p2 = init_robot('panda_2', start_controller = 'joint_impedance_controller')
+        p2 = init_robot('panda_2', start_controller = 'cartesian_impedance_controller', init_node = False)
+        #p2.SetCollisionBehavior(F=50, T= 20, tq = 30) # Now in do concurrently
+
+        sc_grp = VariableStiffnessGripper()
+        p2.gripper = sc_grp
+        p2.gripper.open()
+        p2.ResetCurrentTarget()
+
+        p2._verbose = 1
+        p2.SetLoggerLevel(level='debug')
+        
+        do_concurrently([[p1.SetCollisionBehavior, {'F':50, 'T':10, 'tq':20}], [p2.SetCollisionBehavior, {'F':50, 'T':20, 'tq':30}]], wait_until_task_completion = True)
+        
+        
+        self.p1 = p1
+        self.p2 = p2
+
+        # MAKE SURE panda_1 or panda_2 are initialized before calling this ! (they call init_node() which is required!)
+        cellmanager = CellManager()
+
+        j, ud, activate_basler_st, activate_realsense_st, activate_block2_st, mainjaws_st, sidejaws_st, \
+        slider_st, clamptray_st, rotate_holder_st, cutter_st, cutter_airblower_st,tfread_st,  get_next_action_st= cellmanager.init_cell()
+    
+        # This will actually move the robots
+
+        cy = Disassembly_cycle(p1, p2, ud, activate_basler_st, activate_realsense_st, activate_block2_st, mainjaws_st,
+                            sidejaws_st, slider_st, clamptray_st, rotate_holder_st, cutter_st, cutter_airblower_st,
+                            tfread_st, get_next_action_st)
+
+        rospy.set_param("/vision/basler/publish_labeled_img", True)
+        rospy.set_param("/vision/realsense/publish_labeled_img", True)
+        rospy.set_param("/vision/realsense/publish_depth_img", False)
+        rospy.set_param("/vision/realsense/publish_cluster_img", False)
+
+        cy.prepare_pneumatics()
+        cy.set_cycle_speed(cycle_speed)
 
         
         
+        self.cy = cy
+        
+        #self.robot = panda_ros(name = self._robot_namespace, init_node = False)        
         #self._topic = self._namespace + '/joint_impedance_controller/move_joint_trap'
         #self._topic = '/joint_impedance_controller/move_joint_trap'
 
@@ -52,7 +113,10 @@ class Instantiate_robotblockset(EventState):
         Logger.loginfo("Enter in state instantiate Robotblockset_python")
         
         # userdata.panda_1 = self.robot
-        setattr(userdata, self._robot_namespace, self.robot)
+        setattr(userdata, 'p1' , self.p1)
+        setattr(userdata, 'p2' , self.p2)
+        setattr(userdata, 'cy' , self.cy)
+
         #userdata.panda_n = self.robot
 
         return 'continue'
@@ -81,7 +145,7 @@ if __name__ == '__main__':
 
     
     rospy.init_node('test_node')
-    test_state=Instantiate_robotblockset(robot_namespace = 'panda_1')
+    test_state=Instantiate_robotblockset()
     #test_state=CallJointTrap(0.5,0.1,)
     usertest=userdata()
     test_state.on_enter(usertest)

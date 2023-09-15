@@ -6,7 +6,7 @@ from flexbe_core.proxy import ProxySubscriberCached
 from std_msgs.msg import String
 import json
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 
 class ReadNextVisionAction(EventState):

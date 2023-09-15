@@ -6,7 +6,11 @@ import mongodb_store_msgs.srv as dc_srv
 from mongodb_store.message_store import MessageStoreProxy
 from flexbe_core import EventState, Logger
 from sensor_msgs.msg import JointState
-import StringIO
+try:
+    from StringIO import StringIO ## for Python 2
+except ImportError:
+    from io import StringIO ## for Python 3
+
 
 class WriteToMongo(EventState):
 
@@ -60,7 +64,7 @@ class WriteToMongo(EventState):
         return 'continue'
              
     def on_enter(self, userdata):
-        Logger.loginfo('Starting write to MongoDB...')
+        0#Logger.loginfo('Starting write to MongoDB...')
 
     def on_exit(self, userdata):
         if self.reachable:

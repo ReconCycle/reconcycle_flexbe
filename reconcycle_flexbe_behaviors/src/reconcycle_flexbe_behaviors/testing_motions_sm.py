@@ -8,17 +8,12 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
-from rbs_flexbe_states.RBS_dummy_JMove_data import RBS_CMove
-from rbs_flexbe_states.inst_robotblockset import Instantiate_robotblockset
-from reconcycle_flexbe_states.CallAction_JointTrapVel import CallJointTrap
-from reconcycle_flexbe_states.CallAction_TF_CartLin import CallActionTFCartLin
-from reconcycle_flexbe_states.ErrorRecoveryProxy import FrankaErrorRecoveryActionProxy
-from reconcycle_flexbe_states.Read_TF_CartLin import ReadTFCartLin
-from reconcycle_flexbe_states.load_controller_service_client import LoadControllerProxyClient
-from reconcycle_flexbe_states.read_from_mongodb import ReadFromMongo
-from reconcycle_flexbe_states.read_from_mongodb_POSE import ReadFromMongoPOSE
-from reconcycle_flexbe_states.set_cartesian_compliance_reconcycle import SetReconcycleCartesianCompliance
-from reconcycle_flexbe_states.switch_controller_service_client import SwitchControllerProxyClient
+from rbs_flexbe_states.RBS_CMove import RBS_CMove as rbs_flexbe_states__RBS_CMove
+from rbs_flexbe_states.RBS_CMoveFor import RBS_CMoveFor as rbs_flexbe_states__RBS_CMoveFor
+from rbs_flexbe_states.RBS_JMove import RBS_JMove as rbs_flexbe_states__RBS_JMove
+from rbs_flexbe_states.RBS_error_recovery import RBS_FrankaErrorRecoveryActionProxy as rbs_flexbe_states__RBS_FrankaErrorRecoveryActionProxy
+from rbs_flexbe_states.inst_robotblockset import Instantiate_robotblockset as rbs_flexbe_states__Instantiate_robotblockset
+from reconcycle_flexbe_states.ErrorRecoveryProxy import FrankaErrorRecoveryActionProxy as reconcycle_flexbe_states__FrankaErrorRecoveryActionProxy
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
 
@@ -65,110 +60,62 @@ class testing_motionsSM(Behavior):
 		_state_machine.userdata.offset = [0,0,0]
 		_state_machine.userdata.rotation = [0,0,0]
 		_state_machine.userdata.test_db_pose = "test/some_tf_pose"
+		_state_machine.userdata.robot_1_namespace = "panda_1"
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
 		
 		# [/MANUAL_CREATE]
 
-		# x:30 y:365, x:130 y:365
-		_sm_init_controllers_and_move_init_0 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['j_init_pose'])
-
-		with _sm_init_controllers_and_move_init_0:
-			# x:66 y:23
-			OperatableStateMachine.add('Load_cartesian_contr',
-										LoadControllerProxyClient(desired_controller="cartesian_impedance_controller", robot_name="panda_1"),
-										transitions={'continue': 'Load_joint_contr', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
-
-			# x:249 y:33
-			OperatableStateMachine.add('Load_joint_contr',
-										LoadControllerProxyClient(desired_controller="joint_impedance_controller", robot_name="panda_1"),
-										transitions={'continue': 'error_recovery', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
-
-			# x:861 y:44
-			OperatableStateMachine.add('Read init',
-										ReadFromMongo(),
-										transitions={'continue': 'continue', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'entry_name': 'j_init_pose', 'joints_data': 'mdb_init_pose'})
-
-			# x:435 y:30
-			OperatableStateMachine.add('error_recovery',
-										FrankaErrorRecoveryActionProxy(robot_name="panda_1"),
-										transitions={'continue': 'switch to joint', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
-
-			# x:857 y:180
-			OperatableStateMachine.add('move init',
-										CallJointTrap(max_vel=self.max_vel, max_acl=self.max_acl, namespace="panda_1"),
-										transitions={'continue': 'continue', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'joints_data': 'mdb_init_pose', 'joint_values': 'joint_values'})
-
-			# x:652 y:31
-			OperatableStateMachine.add('switch to joint',
-										SwitchControllerProxyClient(robot_name="panda_1", start_controller=["joint_impedance_controller"], stop_controller=["cartesian_impedance_controller"], strictness=1),
-										transitions={'continue': 'Read init', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
-
-
 
 		with _state_machine:
-			# x:120 y:32
-			OperatableStateMachine.add('panda_1',
-										Instantiate_robotblockset(robot_namespace='panda_1'),
-										transitions={'continue': 'init_move', 'failed': 'failed'},
+			# x:103 y:34
+			OperatableStateMachine.add('error_recovery',
+										reconcycle_flexbe_states__FrankaErrorRecoveryActionProxy(robot_name="panda_1"),
+										transitions={'continue': 'panda_1', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:533 y:427
+			OperatableStateMachine.add('CMF_5cm',
+										rbs_flexbe_states__RBS_CMoveFor(robot_name='panda_1', dx=[0,0.05,0], t=3, task_space='World'),
+										transitions={'continue': 'CMF_-5cm', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'t2_data': 't2_data', 'panda_1': 'panda_1', 'panda_2': 'panda_2', 't2_out': 't2_out'})
+
+			# x:797 y:49
+			OperatableStateMachine.add('JMove_init',
+										rbs_flexbe_states__RBS_JMove(robot_name="panda_1", q=[1.570, -0.686, 0.0132, -2.5423, -0.229, 1.913, 0.53], t=10, traj='poly'),
+										transitions={'continue': 'finished', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'t2_data': 't2_data', 'panda_1': 'panda_1', 'panda_2': 'panda_2', 't2_out': 't2_out'})
+
+			# x:562 y:342
+			OperatableStateMachine.add('error_rec_2',
+										rbs_flexbe_states__RBS_FrankaErrorRecoveryActionProxy(robot_name="panda_1"),
+										transitions={'continue': 'CMF_5cm', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'panda_1': 'panda_1', 'panda_2': 'panda_2'})
 
-			# x:908 y:210
-			OperatableStateMachine.add('Move Cartesian',
-										CallActionTFCartLin(namespace="panda_1", exe_time=10, local_offset=0, global_pos_offset=0, limit_rotations=False),
+			# x:927 y:78
+			OperatableStateMachine.add('init_cmove',
+										rbs_flexbe_states__RBS_CMove(robot_name="panda_1", x=[0.5, 0, 0.3, 90, 0 ,180], t=10, local_offset=0, global_pos_offset=0, limit_rotations=False),
 										transitions={'continue': 'finished', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'t2_data': 'tf_pickup_pose', 't2_out': 't2_out'})
+										remapping={'t2_data': 't2_data', 'panda_1': 'panda_1', 'panda_2': 'panda_2', 't2_out': 't2_out'})
 
-			# x:568 y:355
-			OperatableStateMachine.add('Read object TF',
-										ReadTFCartLin(target_frame="internals_vision_table_zero", source_frame="panda_1/panda_1_link0"),
-										transitions={'continue': 'Move Cartesian', 'failed': 'failed'},
+			# x:406 y:42
+			OperatableStateMachine.add('panda_1',
+										rbs_flexbe_states__Instantiate_robotblockset(robot_namespace="panda_1"),
+										transitions={'continue': 'error_rec_2', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'offset': 'offset', 'rotation': 'rotation', 't2_data': 'tf_pickup_pose'})
+										remapping={'panda_1': 'panda_1', 'panda_2': 'panda_2'})
 
-			# x:897 y:49
-			OperatableStateMachine.add('Read pose',
-										ReadFromMongoPOSE(robot_ns="panda_1"),
-										transitions={'continue': 'Move Cartesian', 'failed': 'Init controllers and move init'},
+			# x:576 y:509
+			OperatableStateMachine.add('CMF_-5cm',
+										rbs_flexbe_states__RBS_CMoveFor(robot_name='panda_1', dx=[0,-0.05,0], t=3, task_space='World'),
+										transitions={'continue': 'finished', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'entry_name': 'test_db_pose', 'pose': 'test_tf'})
-
-			# x:323 y:49
-			OperatableStateMachine.add('init_move',
-										RBS_CMove(robot_name='panda_1', t=10, local_offset=0, global_pos_offset=0, limit_rotations=False),
-										transitions={'continue': 'failed', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'t2_data': 't2_data', 't2_out': 't2_out'})
-
-			# x:709 y:3
-			OperatableStateMachine.add('set_cart_compliance',
-										SetReconcycleCartesianCompliance(robot_name="panda_1", Kp=[self.Kp,self.Kp,self.Kp], Kr=[self.Kr,self.Kr,self.Kr]),
-										transitions={'continue': 'Read object TF', 'failed': 'switch_on_controller'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
-
-			# x:533 y:39
-			OperatableStateMachine.add('switch_on_controller',
-										SwitchControllerProxyClient(robot_name="panda_1", start_controller=["cartesian_impedance_controller"], stop_controller=["joint_impedance_controller"], strictness=1),
-										transitions={'continue': 'set_cart_compliance', 'failed': 'Init controllers and move init'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
-
-			# x:503 y:203
-			OperatableStateMachine.add('Init controllers and move init',
-										_sm_init_controllers_and_move_init_0,
-										transitions={'failed': 'failed', 'continue': 'switch_on_controller'},
-										autonomy={'failed': Autonomy.Inherit, 'continue': Autonomy.Inherit},
-										remapping={'j_init_pose': 'j_init_pose'})
+										remapping={'t2_data': 't2_data', 'panda_1': 'panda_1', 'panda_2': 'panda_2', 't2_out': 't2_out'})
 
 
 		return _state_machine

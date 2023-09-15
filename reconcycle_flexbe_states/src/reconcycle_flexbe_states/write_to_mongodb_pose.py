@@ -5,7 +5,10 @@ import mongodb_store_msgs.srv as dc_srv
 from mongodb_store.message_store import MessageStoreProxy
 from flexbe_core import EventState, Logger
 from geometry_msgs.msg import Pose
-import StringIO
+try:
+    from StringIO import StringIO ## for Python 2
+except ImportError:
+    from io import StringIO ## for Python 3
 import tf
 
 class WriteToMongoPOSE(EventState):

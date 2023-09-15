@@ -6,7 +6,7 @@ import tf2_ros
 import tf2_geometry_msgs
 from flexbe_core import EventState, Logger
 from mongodb_store.message_store import MessageStoreProxy
-import robot_module_msgs.msg
+#import robot_module_msgs.msg
 import actionlib
 import tf
 
@@ -30,9 +30,9 @@ class ReadTFCartLin(EventState):
     '''
 
     def __init__(self, target_frame, source_frame):
-        rospy.loginfo('__init__ callback happened.')
-        super(ReadTFCartLin, self).__init__(outcomes = ['continue', 'failed'], 
-            input_keys = ['offset', 'rotation'], output_keys = ['t2_data'])
+        super(ReadTFCartLin, self).__init__(outcomes = ['continue', 'failed'], input_keys = ['offset', 'rotation'], output_keys = ['t2_data'])
+        
+        #rospy.loginfo('__init__ callback happened.')
 
         # Initialize the TF listener
         self.buffer = tf2_ros.Buffer()
@@ -45,13 +45,14 @@ class ReadTFCartLin(EventState):
         self.source_frame = source_frame
 
     def on_enter(self, userdata):
-        Logger.loginfo("Started reading TF (CartLin)...")
+        #Logger.loginfo("Started reading TF (CartLin)...")
 
         try:
             if self.target_frame and self.source_frame:
-                Logger.loginfo("Recived target and source data... ")
+                0
+                #Logger.loginfo("Received target and source frame names... ")
             else:
-                raise ValueError('No target and source data!')
+                raise ValueError('No target and source frame names!')
         except Exception as e:
             Logger.loginfo('Target or source frame not in Pose() structure!')
             return 'failed'
@@ -68,11 +69,11 @@ class ReadTFCartLin(EventState):
                 rospy.Time(0), rospy.Duration(10))
             t_pose_target = tf2_geometry_msgs.do_transform_pose(self.offset, t_pose)
 
-            Logger.loginfo("source_frame: {}".format(self.source_frame))
-            Logger.loginfo("target_frame: {}".format(self.target_frame))
-            Logger.loginfo("t_pose data: {}".format(t_pose))
-            Logger.loginfo("offset: {}".format(self.offset))
-            Logger.loginfo("target_pose: {}".format(t_pose_target))
+            #Logger.loginfo("source_frame: {}".format(self.source_frame))
+            #Logger.loginfo("target_frame: {}".format(self.target_frame))
+            #Logger.loginfo("t_pose data: {}".format(t_pose))
+            #Logger.loginfo("offset: {}".format(self.offset))
+            #Logger.loginfo("target_pose: {}".format(t_pose_target))
             userdata.t2_data = [t_pose_target.pose]
             return 'continue'
         except (tf2_ros.TransformException, tf2_ros.ConnectivityException) as exception:
@@ -81,9 +82,9 @@ class ReadTFCartLin(EventState):
              return 'failed'
 
     def on_exit(self, userdata):
-        Logger.loginfo('Exiting read TF (CartLin).')
-
-
+        #Logger.loginfo('Exiting read TF (CartLin).')
+        0
+      
 if __name__ == '__main__':
      print("Testing standalone")
      rospy.init_node('test_node')
