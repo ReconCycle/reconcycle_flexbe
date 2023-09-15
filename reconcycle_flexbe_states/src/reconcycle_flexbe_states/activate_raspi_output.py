@@ -13,12 +13,12 @@ from digital_interface_msgs.srv import PinStateWrite,PinStateWriteRequest
 #for deblocking parallel execution in flexbe
 import threading
 
-class ActivateRaspiDigitalOuput(EventState):
+class ActivateRaspiDigitalOutput(EventState):
 
     '''
     Calls service conected to raspberry GPIO
     [...]
-    
+
     -- service_name  string		Speed data
 
     ># Digital_IO_value   bool	desired value
@@ -28,7 +28,7 @@ class ActivateRaspiDigitalOuput(EventState):
     '''
 
     def __init__(self, service_name):
-        super(ActivateRaspiDigitalOuput, self).__init__(outcomes = ['continue', 'failed'], input_keys = ['value'], output_keys = ['success'])
+        super(ActivateRaspiDigitalOutput, self).__init__(outcomes = ['continue', 'failed'], input_keys = ['value'], output_keys = ['success'])
 
         self._service_name = service_name
         self._request = PinStateWriteRequest()
