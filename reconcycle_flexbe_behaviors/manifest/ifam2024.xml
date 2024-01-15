@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="IFAM2024">
+
+	<executable package_path="reconcycle_flexbe_behaviors.ifam2024_sm" class="IFAM2024SM" />
+	<tagstring>demos</tagstring>
+	<author>BK, MS</author>
+	<date>Mon Jan 15 2024</date>
+	<description>
+		IFAM 2024 demo
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>

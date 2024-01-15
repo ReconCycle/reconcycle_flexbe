@@ -1,0 +1,7 @@
+state_name;method_name;state_params;method_params
+SetEEConfig;SetNewEEConfig;ee_config;ee_config
+CMove;CMove;pose, duration;pose, duration
+JMove;JMove;q, duration;q, duration
+JPath;JPath;path, duration;path, duration
+CPath;CPath;path, duration;path, duration
+ErrorRecovery;error_recovery;;
