@@ -4,11 +4,15 @@ from flexbe_core import EventState, Logger
 
 class {{state_name}}State(EventState):
 
-    def __init__(self, robot_name, {%for param in state_params %}{{param}}{% if not loop.last %}, {% endif %}{% endfor %}):
+    def __init__(self, robot_name, {%for param in state_params %}
+            {{param}}{% if not loop.last %}, {% endif %}{% endfor %}):
         super({{state_name}}State, self).__init__(
             outcomes = ['continue', 'failed'],
-            input_keys = [{%for param in input_keys %}{{"'"+param+"'"}}{% endfor %}],
-            {% if output_keys|length %} output_keys = [{%for param in output_keys %}{{"'"+param+"'"}}{% endfor %}]{% endif %})
+            input_keys = [{%for param in input_keys %}
+                          {{"'"+param+"'"}}{% endfor %}],
+            {% if output_keys|length %} output_keys = [
+                {%for param in output_keys %}
+                {{"'"+param+"'"}}{% endfor %}]{% endif %})
 
         self.robot_name = robot_name
         {% if state_params|length > 0 %}
@@ -26,7 +30,8 @@ class {{state_name}}State(EventState):
         {%- endfor %}
         {% if method_params|length > 0 %}
         userdata.robots[self.robot_name].{{method_name}}(
-            {% for method_param in method_params %}self.{{method_param}}{% if not loop.last %},{% endif %}{% endfor %})
+            {% for method_param in method_params %}self.{{method_param}}
+            {% if not loop.last %},{% endif %}{% endfor %})
         {% else %}
         userdata.robots[self.robot_name].{{method_name}}()
         {% endif %}

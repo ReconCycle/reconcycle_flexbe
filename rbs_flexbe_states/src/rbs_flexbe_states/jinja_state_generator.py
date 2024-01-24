@@ -1,5 +1,4 @@
 from jinja2 import Environment, FileSystemLoader
-from robotblockset_python.panda_ros import panda_ros
 from inspect import getmembers, isfunction
 import csv
 
@@ -22,9 +21,13 @@ for element in function_templates:
     state_params = [param for param in state_params if param != '']
     method_params = [string.replace(' ', '') for string in element[3].split(',')]
     method_params = [param for param in method_params if param != '']
+    input_keys = [string.replace(' ', '') for string in element[4].split(',')]
+    input_keys = [param for param in input_keys if param != '']
+    output_keys = [string.replace(' ', '') for string in element[5].split(',')]
+    output_keys = [param for param in output_keys if param != '']
     print(state_params)
     
-    content = template.render(state_name=state_name, state_params=state_params, method_params=method_params, method_name=method_name)
+    content = template.render(state_name=state_name, state_params=state_params, method_params=method_params, method_name=method_name, input_keys=input_keys, output_keys=output_keys)
     filename = f"{state_name.lower()}_state.py"
     with open(filename, mode="w", encoding="utf-8") as message:
         message.write(content)

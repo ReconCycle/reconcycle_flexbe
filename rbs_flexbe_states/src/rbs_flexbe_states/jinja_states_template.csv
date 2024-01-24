@@ -1,7 +1,7 @@
-state_name;method_name;state_params;method_params
-SetEEConfig;SetNewEEConfig;ee_config;ee_config
-CMove;CMove;pose, duration;pose, duration
-JMove;JMove;q, duration;q, duration
-JPath;JPath;path, duration;path, duration
-CPath;CPath;path, duration;path, duration
-ErrorRecovery;error_recovery;;
+state_name;method_name;state_params;method_params;input_keys;output_keys
+SetEEConfig;SetNewEEConfig;ee_config;ee_config;robots;
+CMove;CMove;pose, duration;pose, duration;robots;
+JMove;JMove;q, duration, qdot_max_factor, qddot_max_factor;q, duration;robots;
+JPath;JPath;path, duration;path, duration;robots;
+CPath;CPath;path, duration;path, duration;robots;
+ErrorRecovery;error_recovery;;;robots;

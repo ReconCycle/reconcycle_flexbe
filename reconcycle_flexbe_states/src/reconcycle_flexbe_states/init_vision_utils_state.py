@@ -3,7 +3,6 @@
 from flexbe_core import EventState, Logger
 from disassembly_pipeline.utils.vision_utils import VisionUtils
 
-
 class InitVisionUtilsState(EventState):
 
     def __init__(self, camera_name = 'basler', camera_detections_topic = '/vision/basler/detections', camera_table_name = None):
@@ -16,13 +15,15 @@ class InitVisionUtilsState(EventState):
         self.camera_table_name = camera_table_name
         
     def on_enter(self, userdata):
+        #Logger.loginfo(f'{sys.modules}')
+
         if not hasattr(userdata, 'vision_utils'):
             userdata['vision_utils'] = {}
         
         userdata['vision_utils'][self.camera_name] = VisionUtils(camera_name = self.camera_name,
-                                                                 run_mode = 'manual',
-                                                                 vision_topic = self.camera_detections_topic,
-                                                                 table_name = self.camera_table_name)
+                                                                run_mode = 'manual',
+                                                                vision_topic = self.camera_detections_topic,
+                                                                table_name = self.camera_table_name)
         return 'continue'
         
 

@@ -5,7 +5,9 @@ from flexbe_core import EventState, Logger
 class JPathState(EventState):
 
     def __init__(self, robot_name, path, duration):
-        super(JPathState, self).__init__(outcomes = ['continue', 'failed'])
+        super(JPathState, self).__init__(outcomes = ['continue', 'failed'],
+                                                    input_keys = ['robots'],
+                                                    )
 
         self.robot_name = robot_name
         
