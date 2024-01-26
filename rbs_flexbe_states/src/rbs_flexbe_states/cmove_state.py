@@ -5,9 +5,10 @@ from flexbe_core import EventState, Logger
 class CMoveState(EventState):
 
     def __init__(self, robot_name, pose, duration):
-        super(CMoveState, self).__init__(outcomes = ['continue', 'failed'],
-                                                    input_keys = ['robots'],
-                                                    )
+        super(CMoveState, self).__init__(
+            outcomes = ['continue', 'failed'],
+            input_keys = ['robots'],
+            )
 
         self.robot_name = robot_name
         

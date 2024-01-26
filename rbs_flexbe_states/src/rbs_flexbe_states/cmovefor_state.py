@@ -2,10 +2,10 @@
 
 from flexbe_core import EventState, Logger
 
-class CPathState(EventState):
+class CMoveForState(EventState):
 
-    def __init__(self, robot_name, path, duration):
-        super(CPathState, self).__init__(
+    def __init__(self, robot_name, dx, t):
+        super(CMoveForState, self).__init__(
             outcomes = ['continue', 'failed'],
             input_keys = ['robots'],
             )
@@ -13,15 +13,15 @@ class CPathState(EventState):
         self.robot_name = robot_name
         
         
-        self.path = path
-        self.duration = duration
+        self.dx = dx
+        self.t = t
         
         
     def on_enter(self, userdata):
         
         
-        userdata.robots[self.robot_name].CPath(
-            self.path,self.duration)
+        userdata.robots[self.robot_name].CMoveFor(
+            self.dx,self.t)
         
 
     def execute(self, userdata):

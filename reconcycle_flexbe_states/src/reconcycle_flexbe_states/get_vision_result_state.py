@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
+import copy
 from flexbe_core import EventState, Logger
 
 class GetVisionResultState(EventState):
@@ -16,33 +17,42 @@ class GetVisionResultState(EventState):
     <= failed                       Failed
     '''
     
-    def __init__(self, camera_name):
+    def __init__(self, camera_name, object_to_find = 'firealarm' ):
         super(GetVisionResultState, self).__init__(outcomes = ['continue', 'failed'],
                                                  input_keys = ['vision_utils'],
-                                                 output_keys = ['vision_data'])
+                                                 output_keys = ['detection'])
 
         self.camera_name = camera_name
+        self.object_to_find = object_to_find # What do you want to get out of detections
+
+        self.out = 'failed'
     
     def on_enter(self, userdata):
 
-        desired_object = 'firealarm' # TODO change
-
-        vision_utils = userdata.vision_utils[self.camera_name]
-        
-        vision_utils.wait_for_message()
-        try:
-        
-            return 'continue'
-        
-        except Exception as e:
-            Logger.loginfo("{}".format(e))
+        pass
 
     def execute(self, userdata):
-        return 'continue'
+
+        vision_utils = userdata.vision_utils
+
+        try:
+            vision_utils.update_detections(timeout = 0.1)
+        except Exception as e:
+            Logger.loginfo(f"{e}")
+        
+        detections = copy.deepcopy(vision_utils.detections)
+
+        detected_smoke_detectors = vision_utils.get_particular_class_from_detections(detections = detections, desired_class = 'firealarm')
+
+        if len(detected_smoke_detectors) > 0:
+            self.out = 'continue'
+        
+
+        return self.out
         
     def on_exit(self, userdata):
-        Logger.loginfo("Finished with vision data acquisition!")
-        return 'continue'
+        #Logger.loginfo("Finished with vision data acquisition!")
+        return self.out
 
     def on_start(self):
         pass
