@@ -4,7 +4,7 @@ from flexbe_core import EventState, Logger
 
 class JMoveState(EventState):
 
-    def __init__(self, robot_name, q, duration, qdot_max_factor, qddot_max_factor):
+    def __init__(self, robot_name, q, t, qdot_max_factor, qddot_max_factor):
         super(JMoveState, self).__init__(
             outcomes = ['continue', 'failed'],
             input_keys = ['robots'],
@@ -14,7 +14,7 @@ class JMoveState(EventState):
         
         
         self.q = q
-        self.duration = duration
+        self.t = t
         self.qdot_max_factor = qdot_max_factor
         self.qddot_max_factor = qddot_max_factor
         
@@ -23,7 +23,7 @@ class JMoveState(EventState):
         
         
         userdata.robots[self.robot_name].JMove(
-            self.q,self.duration)
+            q = self.q,t = self.t,qdot_max_factor = self.qdot_max_factor,qddot_max_factor = self.qddot_max_factor)
         
 
     def execute(self, userdata):

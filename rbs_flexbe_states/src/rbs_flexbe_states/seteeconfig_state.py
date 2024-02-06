@@ -20,7 +20,7 @@ class SetEEConfigState(EventState):
         
         
         userdata.robots[self.robot_name].SetNewEEConfig(
-            self.ee_config)
+            ee_config = self.ee_config)
         
 
     def execute(self, userdata):

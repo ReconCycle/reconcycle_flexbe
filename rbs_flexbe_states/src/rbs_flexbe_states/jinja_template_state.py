@@ -26,7 +26,7 @@ class {{state_name}}State(EventState):
         {%- endfor %}
         {% if method_params|length > 0 %}
         userdata.robots[self.robot_name].{{method_name}}(
-            {% for method_param in method_params %}self.{{method_param}}{% if not loop.last %},{% endif %}{% endfor %})
+            {% for method_param in method_params %}{{method_param}} = self.{{method_param}}{% if not loop.last %},{% endif %}{% endfor %})
         {% else %}
         userdata.robots[self.robot_name].{{method_name}}()
         {% endif %}

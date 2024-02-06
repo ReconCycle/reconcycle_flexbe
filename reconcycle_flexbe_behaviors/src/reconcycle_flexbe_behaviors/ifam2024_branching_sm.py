@@ -17,7 +17,6 @@ from rbs_flexbe_states.jmove_state import JMoveState
 from rbs_flexbe_states.jpath_state import JPathState
 from reconcycle_flexbe_states.ErrorRecoveryProxy import FrankaErrorRecoveryActionProxy
 from reconcycle_flexbe_states.cnc_cut_state import CncCutState
-from reconcycle_flexbe_states.detection_to_disassembly_object_state import DetectionToDisassemblyObjectState
 from reconcycle_flexbe_states.drop_object_state import DropObjectState
 from reconcycle_flexbe_states.find_clear_drop_pose import FindClearDropPoseState
 from reconcycle_flexbe_states.get_vision_result_state import GetVisionResultState
@@ -33,15 +32,15 @@ import rospy
 Created on Mon Jan 15 2024
 @author: BK, MS
 '''
-class IFAM2024SM(Behavior):
+class IFAM2024branchingSM(Behavior):
 	'''
 	IFAM 2024 demo
 	'''
 
 
 	def __init__(self):
-		super(IFAM2024SM, self).__init__()
-		self.name = 'IFAM2024'
+		super(IFAM2024branchingSM, self).__init__()
+		self.name = 'IFAM2024 branching'
 
 		# parameters of this behavior
 
@@ -92,9 +91,9 @@ class IFAM2024SM(Behavior):
 
 
 		# x:36 y:703, x:737 y:739
-		_sm_place_smoke_detector_into_cnc_1 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['robots', 'disassembly_object'])
+		_sm_place_hekatron_into_cnc_1 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['robots', 'disassembly_object'])
 
-		with _sm_place_smoke_detector_into_cnc_1:
+		with _sm_place_hekatron_into_cnc_1:
 			# x:30 y:40
 			OperatableStateMachine.add('Move above pickup table',
 										JMoveState(robot_name="panda_1", q=rospy.get_param('/pose_db/demo_poses/smoke_detector_pickup_q'), duration=2.2, qdot_max_factor=1, qddot_max_factor=1),
@@ -107,7 +106,7 @@ class IFAM2024SM(Behavior):
 										DropObjectState(robot_name="panda_1", drop_pose=[0.4991899990939808, 0.12168477043035125, 0.18724904468415368], drop_tf_name=None, move_time_to_above=3, move_time_to_below=1, offset_above_z=0.11),
 										transitions={'continue': 'Depart', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'robots': 'robots'})
+										remapping={'robots': 'robots', 'drop_pose_tf': 'robots'})
 
 			# x:246 y:240
 			OperatableStateMachine.add('Move above CNC',
@@ -125,7 +124,7 @@ class IFAM2024SM(Behavior):
 
 			# x:124 y:129
 			OperatableStateMachine.add('Relative pickup smoke detector',
-										PickupObjectState(robot_name="panda_1", move_above_z=0.15),
+										PickupObjectState(robot_name="panda_1", pick_up_pose=None, move_above_z=0.15),
 										transitions={'continue': 'Move above CNC', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robots': 'robots', 'disassembly_object': 'disassembly_object'})
@@ -138,14 +137,25 @@ class IFAM2024SM(Behavior):
 										remapping={'robots': 'robots'})
 
 
+		# x:89 y:498, x:130 y:518
+		_sm_place_fumonic_into_cnc_2 = OperatableStateMachine(outcomes=['finished', 'failed'])
+
+		with _sm_place_fumonic_into_cnc_2:
+			# x:30 y:40
+			OperatableStateMachine.add('w',
+										WaitState(wait_time=1),
+										transitions={'done': 'finished'},
+										autonomy={'done': Autonomy.Off})
+
+
 		# x:583 y:54, x:284 y:260, x:280 y:107, x:330 y:518, x:430 y:518
-		_sm_move_robots_to_initial_configuration_2 = ConcurrencyContainer(outcomes=['continue', 'failed'], input_keys=['robots'], conditions=[
+		_sm_move_robots_to_initial_configuration_3 = ConcurrencyContainer(outcomes=['continue', 'failed'], input_keys=['robots'], conditions=[
 										('failed', [('p2_move_to_init', 'failed')]),
 										('continue', [('p1_move_to_init', 'continue'), ('p2_move_to_init', 'continue')]),
 										('failed', [('p1_move_to_init', 'failed')])
 										])
 
-		with _sm_move_robots_to_initial_configuration_2:
+		with _sm_move_robots_to_initial_configuration_3:
 			# x:87 y:42
 			OperatableStateMachine.add('p1_move_to_init',
 										JMoveState(robot_name="panda_1", q=[0.12272088397521683,  -1.3181167800849902,  -0.20597019964421703,  -2.5176138428587596,  -0.20126330022266803,  1.254942861398061,  0.8085149702917125], duration=2, qdot_max_factor=0.3, qddot_max_factor=0.3),
@@ -162,7 +172,7 @@ class IFAM2024SM(Behavior):
 
 
 		# x:27 y:282, x:544 y:133, x:566 y:497, x:566 y:310, x:583 y:384, x:574 y:549, x:576 y:444
-		_sm_init_workcell_3 = ConcurrencyContainer(outcomes=['finished', 'failed'], input_keys=['robots', 'vision_utils'], output_keys=['robots', 'vision_utils'], conditions=[
+		_sm_init_workcell_4 = ConcurrencyContainer(outcomes=['finished', 'failed'], input_keys=['robots', 'vision_utils'], output_keys=['robots', 'vision_utils'], conditions=[
 										('finished', [('init_panda_2', 'continue'), ('init_panda_1', 'continue'), ('Init basler', 'continue'), ('Init realsense', 'continue')]),
 										('failed', [('init_panda_1', 'failed')]),
 										('failed', [('init_panda_2', 'failed')]),
@@ -170,7 +180,7 @@ class IFAM2024SM(Behavior):
 										('failed', [('Init realsense', 'failed')])
 										])
 
-		with _sm_init_workcell_3:
+		with _sm_init_workcell_4:
 			# x:223 y:19
 			OperatableStateMachine.add('init_panda_1',
 										InitReconcyclePandaState(robot_name="panda_1", tool_name="ThreeJawChuck", use_toolchanger=True),
@@ -200,10 +210,29 @@ class IFAM2024SM(Behavior):
 										remapping={'vision_utils': 'vision_utils'})
 
 
-		# x:30 y:518, x:130 y:518
-		_sm_check_battery_rotation_4 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['vision_utils', 'robots'])
+		# x:30 y:518, x:130 y:518, x:230 y:518
+		_sm_determine_smoke_detector_type_5 = OperatableStateMachine(outcomes=['failed', 'hekatron', 'fumonic'], input_keys=['vision_utils', 'disassembly_object'])
 
-		with _sm_check_battery_rotation_4:
+		with _sm_determine_smoke_detector_type_5:
+			# x:30 y:40
+			OperatableStateMachine.add('Get smoke detector type',
+										GetVisionResultState(camera_name="basler", object_to_find='firealarm', timeout=3),
+										transitions={'continue': 'Determine smoke detector type', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'vision_utils': 'vision_utils', 'detection': 'detection'})
+
+			# x:31 y:107
+			OperatableStateMachine.add('Determine smoke detector type',
+										DecisionState(outcomes=["hekatron", "fumonic"], conditions=lambda obj: "rotate_gcode" if obj.name == "hekatron" else "nothing"),
+										transitions={'hekatron': 'Determine smoke detector type', 'fumonic': 'Determine smoke detector type'},
+										autonomy={'hekatron': Autonomy.Off, 'fumonic': Autonomy.Off},
+										remapping={'input_value': 'disassembly_object'})
+
+
+		# x:30 y:518, x:130 y:518
+		_sm_check_battery_rotation_6 = OperatableStateMachine(outcomes=['failed', 'continue'], input_keys=['vision_utils', 'robots'])
+
+		with _sm_check_battery_rotation_6:
 			# x:30 y:40
 			OperatableStateMachine.add('Move robot with inhand camera',
 										JMoveState(robot_name="panda_2", q=None, duration=None, qdot_max_factor=None, qddot_max_factor=None),
@@ -230,24 +259,31 @@ class IFAM2024SM(Behavior):
 		with _state_machine:
 			# x:153 y:38
 			OperatableStateMachine.add('Init workcell',
-										_sm_init_workcell_3,
+										_sm_init_workcell_4,
 										transitions={'finished': 'Move robots to initial configuration', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'robots': 'robots', 'vision_utils': 'vision_utils'})
 
-			# x:505 y:412
-			OperatableStateMachine.add('Check battery rotation',
-										_sm_check_battery_rotation_4,
-										transitions={'failed': 'wait', 'continue': 'Cut smoke detector'},
-										autonomy={'failed': Autonomy.Inherit, 'continue': Autonomy.Inherit},
-										remapping={'vision_utils': 'vision_utils', 'robots': 'robots'})
-
-			# x:510 y:499
-			OperatableStateMachine.add('Cut smoke detector',
-										CncCutState(),
-										transitions={'continue': 'Pick smoke detector from CNC', 'failed': 'wait'},
+			# x:669 y:457
+			OperatableStateMachine.add('Cut Fumonic',
+										CncCutState(detailed_class=None, battery_rotation=None),
+										transitions={'continue': 'Pick Fumonic from CNC', 'failed': 'wait'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'disassembly_object': 'disassembly_object', 'cnc_client': 'cnc_client'})
+
+			# x:484 y:483
+			OperatableStateMachine.add('Cut Hekatron',
+										CncCutState(detailed_class=None, battery_rotation=None),
+										transitions={'continue': 'Pick Hekatron from CNC', 'failed': 'wait'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'disassembly_object': 'disassembly_object', 'cnc_client': 'cnc_client'})
+
+			# x:508 y:167
+			OperatableStateMachine.add('Determine smoke detector type',
+										_sm_determine_smoke_detector_type_5,
+										transitions={'failed': 'wait', 'hekatron': 'Place Hekatron into CNC', 'fumonic': 'Place Fumonic into CNC'},
+										autonomy={'failed': Autonomy.Inherit, 'hekatron': Autonomy.Inherit, 'fumonic': Autonomy.Inherit},
+										remapping={'vision_utils': 'vision_utils', 'disassembly_object': 'disassembly_object'})
 
 			# x:532 y:706
 			OperatableStateMachine.add('Drop smoke detector on table',
@@ -262,31 +298,37 @@ class IFAM2024SM(Behavior):
 										transitions={'yes': 'Move robots to initial configuration', 'no': 'finished'},
 										autonomy={'yes': Autonomy.Off, 'no': Autonomy.Off})
 
-			# x:507 y:164
-			OperatableStateMachine.add('Get smoke detector type',
-										GetVisionResultState(camera_name="basler", object_to_find='firealarm', timeout=3),
-										transitions={'continue': 'Set disassembly params', 'failed': 'wait'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'vision_utils': 'vision_utils', 'detection': 'detection'})
-
 			# x:503 y:83
 			OperatableStateMachine.add('Move robots to initial configuration',
-										_sm_move_robots_to_initial_configuration_2,
-										transitions={'continue': 'Get smoke detector type', 'failed': 'wait'},
+										_sm_move_robots_to_initial_configuration_3,
+										transitions={'continue': 'Determine smoke detector type', 'failed': 'wait'},
 										autonomy={'continue': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'robots': 'robots'})
 
-			# x:508 y:591
-			OperatableStateMachine.add('Pick smoke detector from CNC',
-										PickupObjectState(robot_name="panda_1", move_above_z=0.15),
+			# x:640 y:583
+			OperatableStateMachine.add('Pick Fumonic from CNC',
+										PickupObjectState(robot_name=None, pick_up_pose=None, move_above_z=0.15),
 										transitions={'continue': 'Drop smoke detector on table', 'failed': 'wait'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robots': 'robots', 'disassembly_object': 'disassembly_object'})
 
-			# x:507 y:323
-			OperatableStateMachine.add('Place smoke detector into CNC',
-										_sm_place_smoke_detector_into_cnc_1,
-										transitions={'failed': 'wait', 'continue': 'Additional steps'},
+			# x:485 y:580
+			OperatableStateMachine.add('Pick Hekatron from CNC',
+										PickupObjectState(robot_name="panda_1", pick_up_pose=None, move_above_z=0.15),
+										transitions={'continue': 'Drop smoke detector on table', 'failed': 'wait'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'robots': 'robots', 'disassembly_object': 'disassembly_object'})
+
+			# x:668 y:310
+			OperatableStateMachine.add('Place Fumonic into CNC',
+										_sm_place_fumonic_into_cnc_2,
+										transitions={'finished': 'Cut Fumonic', 'failed': 'wait'},
+										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
+
+			# x:490 y:262
+			OperatableStateMachine.add('Place Hekatron into CNC',
+										_sm_place_hekatron_into_cnc_1,
+										transitions={'failed': 'wait', 'continue': 'Check battery rotation'},
 										autonomy={'failed': Autonomy.Inherit, 'continue': Autonomy.Inherit},
 										remapping={'robots': 'robots', 'disassembly_object': 'disassembly_object'})
 
@@ -296,25 +338,18 @@ class IFAM2024SM(Behavior):
 										transitions={'continue': 'Move robots to initial configuration', 'failed': 'failed_during_cycle'},
 										autonomy={'continue': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
-			# x:506 y:241
-			OperatableStateMachine.add('Set disassembly params',
-										DetectionToDisassemblyObjectState(),
-										transitions={'continue': 'Place smoke detector into CNC', 'failed': 'wait'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'detection': 'detection', 'disassembly_object': 'disassembly_object'})
-
 			# x:277 y:366
 			OperatableStateMachine.add('wait',
 										WaitState(wait_time=1),
 										transitions={'done': 'Robot error recovery'},
 										autonomy={'done': Autonomy.Off})
 
-			# x:758 y:381
-			OperatableStateMachine.add('Additional steps',
-										DecisionState(outcomes=["rotate_gcode", "nothing"], conditions=lambda obj: "rotate_gcode" if obj.name == "hekatron" else "nothing"),
-										transitions={'rotate_gcode': 'Check battery rotation', 'nothing': 'Cut smoke detector'},
-										autonomy={'rotate_gcode': Autonomy.Off, 'nothing': Autonomy.Off},
-										remapping={'input_value': 'disassembly_object'})
+			# x:482 y:394
+			OperatableStateMachine.add('Check battery rotation',
+										_sm_check_battery_rotation_6,
+										transitions={'failed': 'wait', 'continue': 'Cut Hekatron'},
+										autonomy={'failed': Autonomy.Inherit, 'continue': Autonomy.Inherit},
+										remapping={'vision_utils': 'vision_utils', 'robots': 'robots'})
 
 
 		return _state_machine

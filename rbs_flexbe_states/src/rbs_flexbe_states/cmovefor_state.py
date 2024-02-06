@@ -21,7 +21,7 @@ class CMoveForState(EventState):
         
         
         userdata.robots[self.robot_name].CMoveFor(
-            self.dx,self.t)
+            dx = self.dx,t = self.t)
         
 
     def execute(self, userdata):

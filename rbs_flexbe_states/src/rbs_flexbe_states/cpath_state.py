@@ -4,7 +4,7 @@ from flexbe_core import EventState, Logger
 
 class CPathState(EventState):
 
-    def __init__(self, robot_name, path, duration):
+    def __init__(self, robot_name, path, t):
         super(CPathState, self).__init__(
             outcomes = ['continue', 'failed'],
             input_keys = ['robots'],
@@ -14,14 +14,14 @@ class CPathState(EventState):
         
         
         self.path = path
-        self.duration = duration
+        self.t = t
         
         
     def on_enter(self, userdata):
         
         
         userdata.robots[self.robot_name].CPath(
-            self.path,self.duration)
+            path = self.path,t = self.t)
         
 
     def execute(self, userdata):

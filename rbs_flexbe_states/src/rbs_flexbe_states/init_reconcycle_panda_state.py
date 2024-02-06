@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 from flexbe_core import EventState, Logger
-import numpy as np
 from disassembly_pipeline.utils.robot_quick_init import initialize_robot
 
 class InitReconcyclePandaState(EventState):
@@ -22,9 +21,11 @@ class InitReconcyclePandaState(EventState):
         self.tool_name = tool_name
         self.use_toolchanger = use_toolchanger
 
+        self.out = 'failed'
+
     def on_enter(self, userdata):
         
-        if not hasattr(userdata, 'robots'):
+        if not hasattr(userdata, 'robots') or (userdata.robots==None):
             userdata.robots = dict()
         
         try:
@@ -37,13 +38,14 @@ class InitReconcyclePandaState(EventState):
                      toolchanger_init_kwargs = {})
 
             userdata.robots[self.robot_name] = robot
-            return 'continue'
+
+            self.out = 'continue'
         except Exception as e:
-            print(e)
-            return 'failed'
+            #Logger.loginfo(e)
+            self.out = 'failed'
 
     def execute(self, userdata):
-        return 'continue'
+        return self.out
 
     def on_exit(self, userdata):
-        pass
+        return self.out

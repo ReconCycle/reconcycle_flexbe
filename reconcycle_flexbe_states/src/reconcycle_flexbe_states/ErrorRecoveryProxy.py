@@ -25,11 +25,12 @@ class FrankaErrorRecoveryActionProxy(EventState):
         
         self.robot_name = robot_name
         self.topic = str(self.robot_name) + "/franka_control/error_recovery"
+    
+    def on_enter(self, userdata):
+
         Logger.loginfo("Starting franka error recovery action proxy")
         self.recovery_client = ProxyActionClient({self.topic: ErrorRecoveryAction})
 
-    
-    def on_enter(self, userdata):
         #-----------------------------------------------------------------------------------------------------------
         goal = ErrorRecoveryActionGoal()
 

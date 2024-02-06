@@ -12,7 +12,6 @@ class InitPandaState(EventState):
     <= failed       Failed to initialize the robot.
     '''
     
-    
     def __init__(self, robot_name):
         super(InitPandaState, self).__init__(outcomes = ['continue', 'failed'], 
                                              input_keys = ['robots'],
@@ -58,9 +57,7 @@ if __name__ == '__main__':
             self.robots = None
 
     userdata = Userdata()
-    rospy.init_node('pa_test', anonymous = False)
+    rospy.init_node('panda_test', anonymous = False)
     st = InitPandaState(robot_name = 'panda_1')
     st.on_enter(userdata)
-    print("WUT WUT WUT")
-    rospy.loginfo("helo.")
     print(userdata.robots['panda_1'].GetState())
