@@ -13,7 +13,7 @@ class CPathState(EventState):
         self.robot_name = robot_name
         
         
-        self.path = path
+        self.cpath = path
         self.t = t
         
         
@@ -21,7 +21,7 @@ class CPathState(EventState):
         
         
         userdata.robots[self.robot_name].CPath(
-            path = self.path,t = self.t)
+            path = self.cpath,t = self.t)
         
 
     def execute(self, userdata):

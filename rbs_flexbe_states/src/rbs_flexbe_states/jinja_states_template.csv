@@ -3,5 +3,4 @@ SetEEConfig;SetNewEEConfig;ee_config;ee_config;robots;
 CMove;CMove;x, t;x, t;robots;
 CMoveFor;CMoveFor; dx, t; dx, t;robots;
 JMove;JMove;q, t, qdot_max_factor, qddot_max_factor;q, t, qdot_max_factor, qddot_max_factor;robots;
-CPath;CPath;path, t;path, t;robots;
 ErrorRecovery;error_recovery;;;robots;
