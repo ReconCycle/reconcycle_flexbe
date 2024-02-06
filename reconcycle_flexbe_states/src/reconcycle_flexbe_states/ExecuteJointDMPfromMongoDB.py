@@ -69,12 +69,6 @@ class ExeJointDMP(EventState):
         self._duration = 6
         
     def on_enter(self, userdata):
-
-        Logger.loginfo("Reading from DMP from MongoDB base: \n {}".format('DMP name'+userdata.entry_name))
-
-
-
-          #Read from mongo db 
      
         Logger.loginfo("Reading _id: {} DMP from mongoDB: ... \n ".format(userdata.entry_name))  
  
@@ -86,9 +80,9 @@ class ExeJointDMP(EventState):
             DMP=data_from_db[0]
         except rospy.ServiceException as e:
     
-            Logger.loginfo("MongoDB is not reachable...")
+            Logger.logerr("MongoDB is not reachable...")
             self.reachable = False
-            return 'failed'
+            self.outcome= 'failed'
 
         #Move robot on DMP starting postion y0
         Logger.loginfo("Move robot on DMP starting postion y0...")
@@ -113,14 +107,15 @@ class ExeJointDMP(EventState):
                 time.sleep(0.5)
                 # 12 secs timeout
                 if time.time()-timeout > 12:
-                    return 'failed'#break
+                    self.outcome = 'failed'
+                    break
 
         except Exception as e:
             # Since a state failure not necessarily causes a behavior failure, it is recommended to only print warnings, not errors.
 			# Using a linebreak before appending the error log enables the operator to collapse details in the GUI.
-            Logger.loginfo('Failed to send the starting point command:\n{}'.format(str(e)))
+            Logger.logerr('Failed to send the starting point command:\n{}'.format(str(e)))
             self._error = True
-            return 'failed'
+            self.outcome= 'failed'
 
         #Execute DMP 
         Logger.loginfo("Execute DMP ...")
@@ -130,8 +125,6 @@ class ExeJointDMP(EventState):
         
 
         try:
-            #Logger.loginfo("DMP sent: {}".format(DMP))
-
 
             self._client.send_goal(self._execute_DMP_topic,dmp_goal)
             timeout = time.time()
@@ -145,23 +138,21 @@ class ExeJointDMP(EventState):
                 
                 # 12 secs timeout
                 if time.time()-timeout > 12:
-                    return 'failed'
+                    self.outcome= 'failed'
+                    break
 
 
         except Exception as e:
             # Since a state failure not necessarily causes a behavior failure, it is recommended to only print warnings, not errors.
 			# Using a linebreak before appending the error log enables the operator to collapse details in the GUI.
-            Logger.loginfo('Failed to send DMP:\n{}'.format(str(e)))
+            Logger.logerr('Failed to send DMP:\n{}'.format(str(e)))
             self._error = True
-            return 'failed' 
+            self.outcome= 'failed' 
             
       
 
-    def execute(self, userdata):
-
-      
-        
-        return 'continue'
+    def execute(self, userdata):       
+        return self.outcome
 
 
 
@@ -169,17 +160,11 @@ class ExeJointDMP(EventState):
    
 
     def on_exit(self, userdata):
-
         Logger.loginfo('Finished sending goal to hand.')
         if not self._client.get_result(self._execute_DMP_topic):
             self._client.cancel(self._execute_DMP_topic)
             Logger.loginfo('Cancelled active action goal. No reply data.')
         Logger.loginfo('Finished sending goal to hand.')
-        return 'continue'
-
-
-
-
 
 if __name__ == '__main__':
 

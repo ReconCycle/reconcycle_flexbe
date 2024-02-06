@@ -55,17 +55,17 @@ class SetLoadProxyClient(EventState):
                 success = self.client_proxy.call(self.topic, request)
                 if success.success == True:
                     Logger.loginfo("Successful: {0}".format(success.success))
-                    return 'continue'
+                    self.outcome= 'continue'
                 elif success.success == False:
-                    Logger.loginfo("Successful: {0}".format(success.success))
-                    return 'failed'
+                    Logger.logerr("Successful: {0}".format(success.success))
+                    self.outcome= 'failed'
             else:
                 Logger.loginfo("Service is not available!")
                 return 'failed'
 
         except (CommandException, NetworkException) as e:
-            Logger.loginfo(e)
-            return 'failed'        
+            Logger.logerr(e)
+            self.outcome= 'failed'        
 
     def execute(self, userdata):
         return 'continue'

@@ -53,30 +53,21 @@ class GetNextAction(EventState):
                 #userdata.action_details_prev = response.action_details
                 userdata.action_block_prev = response.action_block
                 
-                rospy.loginfo("Success: {}".format(response.success))
-                rospy.loginfo("UUID: {}".format(response.uuid))
-                rospy.loginfo("Next action: {}".format(response.action_type))
-                rospy.loginfo("Next action: {}".format(response.action_block))
-                                
+                Logger.loginfo("Success: {}".format(response.success))
+                Logger.loginfo("UUID: {}".format(response.uuid))
+                Logger.loginfo("Next action: {}".format(response.action_type))
+                Logger.loginfo("Next action: {}".format(response.action_block))
+                self.outcome='continue'        
             else:
-                rospy.loginfo("Service is not available!")
-                return 'failed'
+                Logger.logerr("Service is not available!")
+                self.outcome='failed'
             
         #except (CommandException, NetworkException) as e:
         except Exception as e:
-            rospy.loginfo(e)
-            return 'failed'        
+            Logger.logerr(e)
+            self.outcome='failed'
+
 
     def execute(self, userdata):
-        return 'continue'
-        
-
-    def on_exit(self, userdata):
-        Logger.loginfo("Finished service client!")
-        return 'continue'
-
-    def on_start(self):
-        pass
-
-    def on_stop(self):
-        pass
+        return self.outcome
+      

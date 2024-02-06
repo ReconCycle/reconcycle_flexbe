@@ -39,7 +39,7 @@ class AdjustToolPositionAndRotationRVIZ(EventState):
             Logger.loginfo("Reply: {}".format(sendit))
             return 'continue'
         except rospy.ServiceException as e:
-            Logger.loginfo("Data is missing or is not in the right format!")
+            Logger.logerr("Data is missing or is not in the right format!")
             return 'failed'
 
     def on_exit(self, userdata):

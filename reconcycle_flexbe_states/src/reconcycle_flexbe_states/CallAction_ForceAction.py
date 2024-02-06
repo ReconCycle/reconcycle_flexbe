@@ -65,7 +65,7 @@ class CallForceAction(EventState):
             self._client.send_goal(self._topic, force_goal)
             Logger.loginfo("Goal sent: {}".format(str(force_goal)))
         except Exception as e:
-            Logger.loginfo('Failed to send the goal command:\n{}'.format(str(e)))
+            Logger.logerr('Failed to send the goal command:\n{}'.format(str(e)))
             self._error = True
             return 'failed'
         

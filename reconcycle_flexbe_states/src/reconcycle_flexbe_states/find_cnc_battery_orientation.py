@@ -38,8 +38,8 @@ class FindCNCBatteryRotation(EventState):
 				Logger.loginfo("Found battery")
 			except Exception as e:
 				n_retry+=1
-				Logger.loginfo("Exception", e)
-				Logger.loginfo("Failed finding battery")
+				Logger.logerr("Exception", e)
+				Logger.logerr("Failed finding battery")
 		
 		z_rot_deg = 0 # default value if failed at finding
 		if SUCCESS:
@@ -49,7 +49,7 @@ class FindCNCBatteryRotation(EventState):
 			camera_to_bat_rpy = q2rpy(bat_q)* 180/np.pi
 			z_rot_deg = -camera_to_bat_rpy[0] # minus because gripper Z is facing downwards. 
 		else:
-			Logger.loginfo("Did not detect battery in hekatron. check camera and vision_pipeline. Returning battery rotation 0deg")
+			Logger.logerr("Did not detect battery in hekatron. check camera and vision_pipeline. Returning battery rotation 0deg")
 		
 		userdata.disassembly_object.battery_rotation = z_rot_deg
 

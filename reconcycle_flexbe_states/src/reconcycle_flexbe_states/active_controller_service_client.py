@@ -60,25 +60,15 @@ class ActiveControllerProxyClient(EventState):
                 # Retruning active_controller as output_keys    
                 userdata.active_controller = active_controller
                 # If successful state continues to next one or finishes successfully
-                return 'continue'
+                self.outcome='continue'
             
             else:
-                Logger.loginfo("Service is not available!")
-                return 'failed'
+                Logger.logerr("Service is not available!")
+                self.outcome='failed'
 
         except Exception as e:
-            Logger.loginfo(e)
-            return 'failed'
+            Logger.logerr(e)
+            self.outcome='failed'
         
     def execute(self, userdata):
-        return 'continue'
-
-    def on_exit(self, userdata):
-        Logger.loginfo("Finished service client!")
-        return 'continue'
-
-    def on_start(self):
-        pass
-
-    def on_stop(self):
-        pass
+        return self.outcome

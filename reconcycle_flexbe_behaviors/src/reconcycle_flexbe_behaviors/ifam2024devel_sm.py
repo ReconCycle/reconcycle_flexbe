@@ -301,7 +301,7 @@ class IFAM2024DEVELSM(Behavior):
 
 			# x:934 y:346
 			OperatableStateMachine.add('Execute once again?',
-										OperatorDecisionState(outcomes=["yes","no"], hint="Execute once again?", suggestion="Repeat the cycle"),
+										OperatorDecisionState(outcomes=["yes","no"], hint="Execute once again?", suggestion="yes"),
 										transitions={'yes': 'Move robots to initial configuration', 'no': 'finished'},
 										autonomy={'yes': Autonomy.Off, 'no': Autonomy.Off})
 

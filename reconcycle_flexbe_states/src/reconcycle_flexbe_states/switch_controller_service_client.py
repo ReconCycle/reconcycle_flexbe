@@ -45,33 +45,19 @@ class SwitchControllerProxyClient(EventState):
         request.strictness = self.strictness
         Logger.loginfo("request: {0}".format(request))
         
-        #try:
         if self.client_proxy.is_available(self.topic):
             success = self.client_proxy.call(self.topic, request)
             if success.ok == True:
                 Logger.loginfo("Successful: {0}".format(success.ok))
-                return 'continue'
+                self.outcome='continue'
             elif success.ok == False:
-                Logger.loginfo("Successful: {0}".format(success.ok))
-                return 'failed'
+                Logger.logerr("Successful: {0}".format(success.ok))
+                self.outcome='failed'
         else:
-            Logger.loginfo("Service is not available!")
-            return 'failed'
+            Logger.logerr("Service is not available!")
+            self.outcome='failed'
 
-        #except Exception as e:
-        #    Logger.loginfo(e)
-        #    return 'failed'  
 
     def execute(self, userdata):
-        return 'continue'
+        return self.outcome
         
-
-    def on_exit(self, userdata):
-        Logger.loginfo("Finished service client!")
-        return 'continue'
-    
-    def on_start(self):
-        pass
-
-    def on_stop(self):
-        pass

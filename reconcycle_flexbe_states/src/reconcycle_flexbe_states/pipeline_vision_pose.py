@@ -108,18 +108,6 @@ class VisionPoseData(EventState):
                                            np.array([np.cos(angle/2)])))
             Logger.loginfo("Quaternion: {}".format(obb_rot_quat))
 
-            ##### PLOTTING FOR TEST ##### 
-            # plt.scatter(corners[:,0], corners[:,1])
-            # plt.plot(first_corner[0], first_corner[1], 'ro')
-            # plt.arrow(first_corner[0], first_corner[1], vector_1[0], vector_1[1], 'g')
-            # plt.arrow(first_corner[0], first_corner[1], unit_vector_1[0], unit_vector_1[1], 'y')
-            # plt.gca().invert_xaxis()
-            # plt.axis('equal')
-            # plt.title("%.3f"%(angle * 180 / np.pi))
-            # plt.savefig('/ros_ws/src/reconcycle_states/reconcycle_flexbe_states/src/reconcycle_flexbe_states/corners.png')
-            # plt.close()
-            #################################################
-
             # object center position and rotation
             self.output_data.position.x = obb_center[0]
             self.output_data.position.y = obb_center[1]
@@ -129,14 +117,12 @@ class VisionPoseData(EventState):
             self.output_data.orientation.z = obb_rot_quat[2]
             self.output_data.orientation.w = obb_rot_quat[3]
 
-            #Logger.loginfo("Vision data in Pose() format: {}".format(self.output_data))
-
             userdata.vision_data = [self.output_data]
         
             return 'continue'
         
         except Exception as e:
-            Logger.loginfo("{}".format(e))
+            Logger.logerr("{}".format(e))
 
     def execute(self, userdata):
         return 'continue'

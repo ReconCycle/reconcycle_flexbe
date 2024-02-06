@@ -55,7 +55,7 @@ class ReadFromMongo(EventState):
             Logger.loginfo("Position data read from DB: \n {}".format(position_data))      
 
         except rospy.ServiceException as e:
-            Logger.loginfo("MongoDB is not reachable...")
+            Logger.logerr("MongoDB is not reachable...")
             self.reachable = False
             return 'failed'
 
@@ -66,7 +66,7 @@ class ReadFromMongo(EventState):
         if self.reachable:
             Logger.loginfo("Finished reading from MongoDB.")
         else:
-            Logger.loginfo("Could not read from MongoDB!")
+            Logger.logerr("Could not read from MongoDB!")
         
 if __name__ == '__main__':
     print("Testing standalone")
