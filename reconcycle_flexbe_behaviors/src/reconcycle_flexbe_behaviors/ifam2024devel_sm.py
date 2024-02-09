@@ -98,47 +98,47 @@ class IFAM2024DEVELSM(Behavior):
 		with _sm_place_smoke_detector_into_cnc_1:
 			# x:56 y:36
 			OperatableStateMachine.add('Move above pickup table',
-										JMoveState(robot_name="panda_1", q=rospy.get_param('/pose_db/demo_poses/smoke_detector_pickup_q'), t=3, qdot_max_factor=1, qddot_max_factor=1),
-										transitions={'continue': 'Relative pickup smoke detector', 'failed': 'failed'},
+										JMoveState(robot_name="panda_1", q=rospy.get_param('/pose_db/demo_poses/smoke_detector_pickup_q'), t=2, qdot_max_factor=1, qddot_max_factor=1),
+										transitions={'continue': 'Relative pickup', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robots': 'robots'})
 
-			# x:331 y:350
+			# x:514 y:357
 			OperatableStateMachine.add('Drop fumonic',
-										DropObjectState(robot_name="panda_1", drop_pose=rospy.get_param('/pose_db/panda_1/cnc_fumonic_chuck/pose'), drop_tf_name=None, move_time_to_above=1.5, move_time_to_below=1, offset_above_z=0.11),
+										DropObjectState(robot_name="panda_1", drop_pose=rospy.get_param('/pose_db/panda_1/cnc_fumonic_chuck/pose'), drop_tf_name=None, move_time_to_above=0.8, move_time_to_below=1, offset_above_z=0.11, drop_pose_offset=[0,0,0.005]),
 										transitions={'continue': 'Move robot away (to init)', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robots': 'robots', 'drop_pose_tf': 'drop_pose_tf'})
 
-			# x:560 y:355
+			# x:729 y:385
 			OperatableStateMachine.add('Drop hekatron to CNC',
-										DropObjectState(robot_name="panda_1", drop_pose=rospy.get_param('/pose_db/panda_1/cnc_hekatron_chuck/pose'), drop_tf_name=None, move_time_to_above=1.5, move_time_to_below=1, offset_above_z=0.11),
+										DropObjectState(robot_name="panda_1", drop_pose=rospy.get_param('/pose_db/panda_1/cnc_hekatron_chuck/pose'), drop_tf_name=None, move_time_to_above=0.8, move_time_to_below=1, offset_above_z=0.11, drop_pose_offset=[0,0,0.01]),
 										transitions={'continue': 'Move robot away (to init)', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robots': 'robots', 'drop_pose_tf': 'drop_pose_tf'})
 
-			# x:485 y:155
+			# x:762 y:134
 			OperatableStateMachine.add('Move above CNC',
-										JPathState(robot_name="panda_1", path=[rospy.get_param('/pose_db/panda_1/via_cnc_vision/joints'), rospy.get_param('/pose_db/panda_1/above_cnc/joints')], t=4),
+										JPathState(robot_name="panda_1", path=[rospy.get_param('/pose_db/panda_1/via_cnc_vision/joints'), rospy.get_param('/pose_db/panda_1/above_cnc/joints')], t=2.5),
 										transitions={'continue': 'Determine drop pose tf name', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robots': 'robots'})
 
 			# x:583 y:562
 			OperatableStateMachine.add('Move robot away (to init)',
-										JMoveState(robot_name="panda_1", q=rospy.get_param('/pose_db/q_init/panda_1'), t=3, qdot_max_factor=1, qddot_max_factor=1),
+										JMoveState(robot_name="panda_1", q=rospy.get_param('/pose_db/q_init/panda_1'), t=1.5, qdot_max_factor=1, qddot_max_factor=1),
 										transitions={'continue': 'continue', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robots': 'robots'})
 
-			# x:285 y:54
-			OperatableStateMachine.add('Relative pickup smoke detector',
-										PickupObjectState(robot_name="panda_1", pick_up_pose=None, move_above_z=0.15),
+			# x:501 y:30
+			OperatableStateMachine.add('Relative pickup',
+										PickupObjectState(robot_name="panda_1", pick_up_pose=None, move_time_to_above_pickup_pose=1, move_time_to_pickup_pose=1, move_above_z=0.15, gripper_sleep=False, v_max_factor=1.0, a_max_factor=1.0, offset=None),
 										transitions={'continue': 'Move above CNC', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robots': 'robots', 'disassembly_object': 'disassembly_object'})
 
-			# x:460 y:241
+			# x:624 y:253
 			OperatableStateMachine.add('Determine drop pose tf name',
 										DecisionState(outcomes=['drop_hekatron', 'drop_fumonic'], conditions=lambda x: 'drop_hekatron' if (x.detailed_class=='hekatron') else 'drop_fumonic'),
 										transitions={'drop_hekatron': 'Drop hekatron to CNC', 'drop_fumonic': 'Drop fumonic'},
@@ -202,14 +202,14 @@ class IFAM2024DEVELSM(Behavior):
 		with _sm_init_vision_4:
 			# x:121 y:44
 			OperatableStateMachine.add('init basler',
-										InitVisionUtilsState(camera_name='basler', camera_detections_topic='/vision/basler/detections', camera_table_name='table_vision'),
+										InitVisionUtilsState(camera_name='basler', camera_detections_topic='/vision/basler/detections', camera_table_name='table_vision', enable_camera_immediately=True),
 										transitions={'continue': 'finished', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'vision_utils': 'vision_utils'})
 
 			# x:152 y:205
 			OperatableStateMachine.add('init realsense',
-										InitVisionUtilsState(camera_name='realsense', camera_detections_topic='/vision/realsense/detections', camera_table_name=None),
+										InitVisionUtilsState(camera_name='realsense', camera_detections_topic='/vision/realsense/detections', camera_table_name=None, enable_camera_immediately=True),
 										transitions={'continue': 'finished', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'vision_utils': 'vision_utils'})
@@ -221,7 +221,7 @@ class IFAM2024DEVELSM(Behavior):
 		with _sm_check_battery_rotation_5:
 			# x:212 y:51
 			OperatableStateMachine.add('move to side',
-										JMoveState(robot_name="panda_2", q=[-0.85320616, -0.613722  , -0.008163  , -2.44418   , -0.044385  ,1.850346  ,  0.712032  ], t=3, qdot_max_factor=0.7, qddot_max_factor=0.7),
+										JMoveState(robot_name="panda_2", q=[-0.85320616, -0.613722  , -0.008163  , -2.44418   , -0.044385  ,1.850346  ,  0.712032  ], t=2, qdot_max_factor=1, qddot_max_factor=1),
 										transitions={'continue': 'move above cnc', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robots': 'robots'})
@@ -235,28 +235,28 @@ class IFAM2024DEVELSM(Behavior):
 
 			# x:260 y:170
 			OperatableStateMachine.add('move above cnc',
-										JMoveState(robot_name="panda_2", q=[ 1.29354882, -0.613722  , -0.008163  , -2.44418   , -0.044385  ,1.850346  ,  0.712032  ], t=3, qdot_max_factor=0.6, qddot_max_factor=0.6),
+										JMoveState(robot_name="panda_2", q=[ 1.29354882, -0.613722  , -0.008163  , -2.44418   , -0.044385  ,1.850346  ,  0.712032  ], t=2, qdot_max_factor=0.6, qddot_max_factor=0.6),
 										transitions={'continue': 'cmove_above_chuck', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robots': 'robots'})
 
 			# x:466 y:594
 			OperatableStateMachine.add('move to init',
-										JMoveState(robot_name="panda_2", q=[-0.85320616, -0.613722  , -0.008163  , -2.44418   , -0.044385  ,1.850346  ,  0.712032  ], t=3, qdot_max_factor=0.7, qddot_max_factor=0.7),
+										JMoveState(robot_name="panda_2", q=[-0.85320616, -0.613722  , -0.008163  , -2.44418   , -0.044385  ,1.850346  ,  0.712032  ], t=2, qdot_max_factor=1, qddot_max_factor=1),
 										transitions={'continue': 'continue', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robots': 'robots'})
 
 			# x:430 y:447
 			OperatableStateMachine.add('move to side 2',
-										JMoveState(robot_name="panda_2", q=[ 1.29354882, -0.613722  , -0.008163  , -2.44418   , -0.044385  ,1.850346  ,  0.712032  ], t=3, qdot_max_factor=0.6, qddot_max_factor=0.6),
+										JMoveState(robot_name="panda_2", q=[ 1.29354882, -0.613722  , -0.008163  , -2.44418   , -0.044385  ,1.850346  ,  0.712032  ], t=1.5, qdot_max_factor=0.7, qddot_max_factor=0.7),
 										transitions={'continue': 'move to init', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robots': 'robots'})
 
 			# x:480 y:179
 			OperatableStateMachine.add('cmove_above_chuck',
-										CMoveState(robot_name="panda_2", x=[0.157, 0.63, 0.34886717, 0, 0.70710678, 0.70710678, -0], t=2),
+										CMoveState(robot_name="panda_2", x=[0.157, 0.63, 0.34886717, 0, 0.70710678, 0.70710678, -0], t=1.5),
 										transitions={'continue': 'find_battery_rotation', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robots': 'robots'})
@@ -274,7 +274,7 @@ class IFAM2024DEVELSM(Behavior):
 			# x:505 y:412
 			OperatableStateMachine.add('Check battery rotation',
 										_sm_check_battery_rotation_5,
-										transitions={'failed': 'wait', 'continue': 'Cut smoke detector'},
+										transitions={'failed': 'wait', 'continue': 'Use CNC?'},
 										autonomy={'failed': Autonomy.Inherit, 'continue': Autonomy.Inherit},
 										remapping={'vision_utils': 'vision_utils', 'robots': 'robots', 'disassembly_object': 'disassembly_object'})
 
@@ -292,14 +292,14 @@ class IFAM2024DEVELSM(Behavior):
 										autonomy={'hekatron': Autonomy.Off, 'fumonic': Autonomy.Off},
 										remapping={'input_value': 'disassembly_object'})
 
-			# x:1169 y:869
+			# x:1231 y:767
 			OperatableStateMachine.add('Drop smoke detector on table',
-										DropObjectState(robot_name="panda_1", drop_pose=None, drop_tf_name=None, move_time_to_above=3, move_time_to_below=1, offset_above_z=0.15),
-										transitions={'continue': 'Move above vision table', 'failed': 'Pick up fumonic'},
+										DropObjectState(robot_name="panda_1", drop_pose=None, drop_tf_name=None, move_time_to_above=1, move_time_to_below=1, offset_above_z=0.15, drop_pose_offset=[0,0,0]),
+										transitions={'continue': 'Execute once again?', 'failed': 'Pick up fumonic'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robots': 'robots', 'drop_pose_tf': 'drop_pose_in_robot_frame'})
 
-			# x:934 y:346
+			# x:924 y:361
 			OperatableStateMachine.add('Execute once again?',
 										OperatorDecisionState(outcomes=["yes","no"], hint="Execute once again?", suggestion="yes"),
 										transitions={'yes': 'Move robots to initial configuration', 'no': 'finished'},
@@ -312,10 +312,10 @@ class IFAM2024DEVELSM(Behavior):
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'vision_utils': 'vision_utils', 'detection': 'detection'})
 
-			# x:819 y:870
+			# x:933 y:911
 			OperatableStateMachine.add('Find clear drop pose',
-										FindClearDropPoseState(dropped_object_diameter=0.14, drop_limit_bbox=[[0.15,0.45],[0.45,0.15]], detections_parent_frame="vision_table_zero", drop_pose_z_in_robot_frame=0.07, robot_parent_frame='panda_1_link0'),
-										transitions={'continue': 'Drop smoke detector on table', 'failed': 'failed_during_cycle'},
+										FindClearDropPoseState(dropped_object_diameter=0.14, drop_limit_bbox=[[0.18,0.45],[0.45,0.18]], detections_parent_frame="vision_table_zero", drop_pose_z_in_robot_frame=0.07, robot_parent_frame='panda_1_link0'),
+										transitions={'continue': 'JPath to vision table', 'failed': 'failed_during_cycle'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'detections': 'detection', 'drop_pose_in_robot_frame': 'drop_pose_in_robot_frame'})
 
@@ -333,7 +333,14 @@ class IFAM2024DEVELSM(Behavior):
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'robots': 'robots'})
 
-			# x:1155 y:598
+			# x:1062 y:832
+			OperatableStateMachine.add('JPath to vision table',
+										JPathState(robot_name="panda_1", path=[rospy.get_param('/pose_db/panda_1/via_cnc_vision/joints'), rospy.get_param('/pose_db/demo_poses/smoke_detector_pickup_q')], t=2.0),
+										transitions={'continue': 'Drop smoke detector on table', 'failed': 'failed_during_cycle'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'robots': 'robots'})
+
+			# x:1200 y:573
 			OperatableStateMachine.add('Move above vision table',
 										JMoveState(robot_name="panda_1", q=rospy.get_param('/pose_db/demo_poses/smoke_detector_pickup_q'), t=2, qdot_max_factor=0.5, qddot_max_factor=0.5),
 										transitions={'continue': 'Execute once again?', 'failed': 'failed_during_cycle'},
@@ -343,20 +350,20 @@ class IFAM2024DEVELSM(Behavior):
 			# x:503 y:83
 			OperatableStateMachine.add('Move robots to initial configuration',
 										_sm_move_robots_to_initial_configuration_2,
-										transitions={'continue': 'Pick up fumonic', 'failed': 'wait'},
+										transitions={'continue': 'Get smoke detector type', 'failed': 'wait'},
 										autonomy={'continue': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'robots': 'robots'})
 
 			# x:491 y:693
 			OperatableStateMachine.add('Pick up fumonic',
-										PickupObjectState(robot_name="panda_1", pick_up_pose=rospy.get_param('/pose_db/panda_1/cnc_fumonic_chuck/pose'), move_above_z=0.15),
+										PickupObjectState(robot_name="panda_1", pick_up_pose=rospy.get_param('/pose_db/panda_1/cnc_fumonic_chuck/pose'), move_time_to_above_pickup_pose=2, move_time_to_pickup_pose=1, move_above_z=0.15, gripper_sleep=False, v_max_factor=1.0, a_max_factor=1.0, offset=None),
 										transitions={'continue': 'Find all objects on table', 'failed': 'failed_during_cycle'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robots': 'robots', 'disassembly_object': 'disassembly_object'})
 
 			# x:654 y:689
 			OperatableStateMachine.add('Pick up hekatron',
-										PickupObjectState(robot_name="panda_1", pick_up_pose=rospy.get_param('/pose_db/panda_1/cnc_hekatron_chuck/pose'), move_above_z=0.15),
+										PickupObjectState(robot_name="panda_1", pick_up_pose=rospy.get_param('/pose_db/panda_1/cnc_hekatron_chuck/pose'), move_time_to_above_pickup_pose=2, move_time_to_pickup_pose=1, move_above_z=0.15, gripper_sleep=False, v_max_factor=1.0, a_max_factor=1.0, offset=None),
 										transitions={'continue': 'Find all objects on table', 'failed': 'wait'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robots': 'robots', 'disassembly_object': 'disassembly_object'})
@@ -374,16 +381,22 @@ class IFAM2024DEVELSM(Behavior):
 										transitions={'continue': 'Move robots to initial configuration', 'failed': 'failed_during_cycle'},
 										autonomy={'continue': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
-			# x:254 y:502
+			# x:740 y:521
+			OperatableStateMachine.add('Use CNC?',
+										OperatorDecisionState(outcomes=["yes","no"], hint="Use CNC?", suggestion="yes"),
+										transitions={'yes': 'Cut smoke detector', 'no': 'Determine pick up pose'},
+										autonomy={'yes': Autonomy.Off, 'no': Autonomy.Off})
+
+			# x:272 y:452
 			OperatableStateMachine.add('wait',
 										WaitState(wait_time=1),
 										transitions={'done': 'Robot error recovery'},
 										autonomy={'done': Autonomy.Off})
 
-			# x:780 y:417
+			# x:758 y:416
 			OperatableStateMachine.add('Additional steps',
 										DecisionState(outcomes=["rotate_gcode", "nothing"], conditions=lambda x: "rotate_gcode" if (x.detailed_class == "hekatron") else "nothing"),
-										transitions={'rotate_gcode': 'Check battery rotation', 'nothing': 'Cut smoke detector'},
+										transitions={'rotate_gcode': 'Check battery rotation', 'nothing': 'Use CNC?'},
 										autonomy={'rotate_gcode': Autonomy.Off, 'nothing': Autonomy.Off},
 										remapping={'input_value': 'disassembly_object'})
 

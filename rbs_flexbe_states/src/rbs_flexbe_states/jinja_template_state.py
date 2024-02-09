@@ -16,6 +16,7 @@ class {{state_name}}State(EventState):
         self.{{param}} = {{param}}
         {%- endfor %}
         {% endif %}
+        self._outcome = 'failed'
         
     def on_enter(self, userdata):
         {% set jinja_param_list = [] -%}
@@ -24,15 +25,20 @@ class {{state_name}}State(EventState):
         self.{{method_param}} = userdata.{{method_param}}
         {% endif %}
         {%- endfor %}
-        {% if method_params|length > 0 %}
-        userdata.robots[self.robot_name].{{method_name}}(
-            {% for method_param in method_params %}{{method_param}} = self.{{method_param}}{% if not loop.last %},{% endif %}{% endfor %})
-        {% else %}
-        userdata.robots[self.robot_name].{{method_name}}()
-        {% endif %}
+        try:
+            {% if method_params|length > 0 %}
+            userdata.robots[self.robot_name].{{method_name}}(
+                {% for method_param in method_params %}{{method_param}} = self.{{method_param}}{% if not loop.last %},{% endif %}{% endfor %})
+            {% else %}
+            userdata.robots[self.robot_name].{{method_name}}()
+            {% endif %}
+            self._outcome = 'continue'
+        except Exception as e:
+            Logger.logerr(f'{e}')
+            self._outcome = 'failed'
 
     def execute(self, userdata):
-        return 'continue'
+        return self._outcome
 
     def on_exit(self, userdata):
         pass

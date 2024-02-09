@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(rbs_flexbe_states)
+project(franka_ros_flexbe_states)
 
 find_package(catkin REQUIRED)
 

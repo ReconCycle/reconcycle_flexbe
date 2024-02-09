@@ -27,27 +27,36 @@ class FindCNCBatteryRotation(EventState):
 		r = userdata.robots[self.robot_name]
 		vision_utils = userdata.vision_utils[self.vision_utils_name]
 
-		MAX_N_RETRIES = 2
-		n_retry = 0
 		SUCCESS = 0
-		while (SUCCESS==0) and (n_retry<MAX_N_RETRIES):
-			try:
-				vision_utils.update_detections(timeout=2)
-				battery_det = vision_utils.get_particular_class_from_detections(desired_class = 'battery_covered')[0]
-				SUCCESS = 1
-				Logger.loginfo("Found battery")
-			except Exception as e:
-				n_retry+=1
-				Logger.logerr("Exception", e)
-				Logger.logerr("Failed finding battery")
+
+		battery_detections = vision_utils.get_detections_with_timeout(desired_class = 'battery_covered', timeout = 4.0)
+		if battery_detections is not None:
+			battery_detection = battery_detections[0]
+			SUCCESS = 1
+			self.out = 'continue'
+
+		# MAX_N_RETRIES = 2
+		# n_retry = 0
+		# SUCCESS = 0
+		# while (SUCCESS==0) and (n_retry<MAX_N_RETRIES):
+		# 	try:
+		# 		vision_utils.update_detections(timeout=2)
+		# 		battery_det = vision_utils.get_particular_class_from_detections(desired_class = 'battery_covered')[0]
+		# 		SUCCESS = 1
+		# 		Logger.loginfo("Found battery")
+		# 	except Exception as e:
+		# 		n_retry+=1
+		# 		Logger.logerr("Exception", e)
+		# 		Logger.logerr("Failed finding battery")
 		
 		z_rot_deg = 0 # default value if failed at finding
 		if SUCCESS:
-			rot = battery_det.tf_px.rotation
+			rot = battery_detection.tf_px.rotation
 			bat_q = [rot.w, rot.x, rot.y, rot.z]
 
 			camera_to_bat_rpy = q2rpy(bat_q)* 180/np.pi
 			z_rot_deg = -camera_to_bat_rpy[0] # minus because gripper Z is facing downwards. 
+			Logger.loginfo(f'Detected battery rotation {z_rot_deg}')
 		else:
 			Logger.logerr("Did not detect battery in hekatron. check camera and vision_pipeline. Returning battery rotation 0deg")
 		

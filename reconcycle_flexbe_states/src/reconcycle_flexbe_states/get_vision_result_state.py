@@ -2,6 +2,7 @@
 
 import rospy
 import copy
+import numpy as np
 from flexbe_core import EventState, Logger
 
 from disassembly_pipeline.environment.types import SmokeDetector
@@ -36,7 +37,7 @@ class GetVisionResultState(EventState):
     def on_enter(self, userdata):
         # Reset all variables
         self.out = 'failed'
-        
+
         userdata.detection = None
         # Variable to keep track of n_retries
         self.n_retries = 0 
@@ -66,14 +67,16 @@ class GetVisionResultState(EventState):
             detected_objects_of_interests = detections
             userdata.detection = detections
             self.out = 'continue'
-            
+
         # self.object_to_find is not None, so we actually need at least one detection.
-        if len(detections)>0:
+        elif (self.object_to_find is not None) and (len(detections)>0):
             #Logger.loginfo("{}".format(len(detections)))
-            detected_objects_of_interests = vision_utils.get_particular_class_from_detections(detections = detections, desired_class = self.object_to_find)
+            detected_objects_of_interests = vision_utils.get_particular_class_from_detections(
+                detections = detections, desired_class = self.object_to_find)
             if len(detected_objects_of_interests) > 0:
                 # _get_simple_detections will add attributes such as tf_name, general_class, class_and_id, to the detection.
-                disassembly_object = detected_objects_of_interests[0]
+                random_idx = np.random.randint(0, len(detected_objects_of_interests))
+                disassembly_object = detected_objects_of_interests[random_idx]
 
                 if 'firealarm' in disassembly_object.general_class:
                     disassembly_object = SmokeDetector(disassembly_object)

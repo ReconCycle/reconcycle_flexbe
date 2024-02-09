@@ -44,7 +44,7 @@ class FindClearDropPoseState(EventState):
                         parent_frame = self.detections_parent_frame
                         )
         drop_T_in_table_frame = np.eye(4) # rotation will be overwritten later
-        drop_T_in_table_frame[0:2,-1] = drop_position
+        drop_T_in_table_frame[0:3,-1] = drop_position
         drop_T_in_robot_frame = x2t(self.tf2x(self.robot_parent_frame, self.detections_parent_frame))@drop_T_in_table_frame
         drop_T_in_robot_frame[2, -1] = self.drop_pose_z_in_robot_frame
         

@@ -5,7 +5,7 @@ from disassembly_pipeline.utils.vision_utils import VisionUtils
 
 class InitVisionUtilsState(EventState):
 
-    def __init__(self, camera_name = 'basler', camera_detections_topic = '/vision/basler/detections', camera_table_name = 'table_vision'):
+    def __init__(self, camera_name = 'basler', camera_detections_topic = '/vision/basler/detections', camera_table_name = 'table_vision', enable_camera_immediately = True):
         super(InitVisionUtilsState, self).__init__(outcomes = ['continue', 'failed'],
                                                    input_keys = ['vision_utils'],
                                                    output_keys = ['vision_utils'])
@@ -13,6 +13,7 @@ class InitVisionUtilsState(EventState):
         self.camera_name = camera_name
         self.camera_detections_topic = camera_detections_topic
         self.camera_table_name = camera_table_name
+        self.enable_camera_immediately = enable_camera_immediately
         self.out = 'failed'
 
         
@@ -28,10 +29,11 @@ class InitVisionUtilsState(EventState):
                                                                     run_mode = 'flexbe',
                                                                     vision_topic = self.camera_detections_topic,
                                                                     table_name = self.camera_table_name)
+            if self.enable_camera_immediately:
+                userdata.vision_utils[self.camera_name].enable_camera()
             self.out = 'continue'
         except Exception as e:
-            breakpoint()
-            Logger.loginfo("{}".format(e))
+            Logger.loginfo(f"{e}")
             self.out = 'failed'
 
     def execute(self, userdata):
