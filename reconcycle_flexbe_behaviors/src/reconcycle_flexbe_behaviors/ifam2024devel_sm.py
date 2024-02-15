@@ -16,6 +16,7 @@ from rbs_flexbe_states.init_reconcycle_panda_state import InitReconcyclePandaSta
 from rbs_flexbe_states.jmove_state import JMoveState
 from rbs_flexbe_states.jpath_state import JPathState
 from reconcycle_flexbe_states.ErrorRecoveryProxy import FrankaErrorRecoveryActionProxy
+from reconcycle_flexbe_states.activate_raspi_output import ActivateRaspiDigitalOutput
 from reconcycle_flexbe_states.cnc_cut_state import CncCutState
 from reconcycle_flexbe_states.drop_object_state import DropObjectState
 from reconcycle_flexbe_states.find_clear_drop_pose import FindClearDropPoseState
@@ -23,6 +24,7 @@ from reconcycle_flexbe_states.find_cnc_battery_orientation import FindCNCBattery
 from reconcycle_flexbe_states.get_vision_result_state import GetVisionResultState
 from reconcycle_flexbe_states.init_vision_utils_state import InitVisionUtilsState
 from reconcycle_flexbe_states.pickup_object_state import PickupObjectState
+from reconcycle_flexbe_states.upload_posedb_to_rosparam_state import UploadPoseDBState
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
 import rospy
@@ -66,6 +68,7 @@ class IFAM2024DEVELSM(Behavior):
 		_state_machine.userdata.disassembly_object = None
 		_state_machine.userdata.drop_pose_in_robot_frame = None
 		_state_machine.userdata.drop_pose_tf = None
+		_state_machine.userdata.activate_airblock = True
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
@@ -169,11 +172,13 @@ class IFAM2024DEVELSM(Behavior):
 										remapping={'robots': 'robots'})
 
 
-		# x:27 y:282, x:544 y:133, x:566 y:497, x:566 y:310, x:583 y:384
-		_sm_init_workcell_3 = ConcurrencyContainer(outcomes=['finished', 'failed'], input_keys=['robots'], output_keys=['robots'], conditions=[
-										('finished', [('init_panda_2', 'continue'), ('init_panda_1', 'continue')]),
+		# x:27 y:282, x:544 y:133, x:563 y:236, x:566 y:310, x:583 y:384, x:543 y:572, x:630 y:365
+		_sm_init_workcell_3 = ConcurrencyContainer(outcomes=['finished', 'failed'], input_keys=['robots', 'activate_airblock'], output_keys=['robots'], conditions=[
+										('finished', [('init_panda_2', 'continue'), ('init_panda_1', 'continue'), ('Activate Panda 1 airblock', 'continue'), ('Upload PoseDB to Rosparam', 'continue')]),
 										('failed', [('init_panda_1', 'failed')]),
-										('failed', [('init_panda_2', 'failed')])
+										('failed', [('init_panda_2', 'failed')]),
+										('failed', [('Activate Panda 1 airblock', 'failed')]),
+										('failed', [('Upload PoseDB to Rosparam', 'failed')])
 										])
 
 		with _sm_init_workcell_3:
@@ -184,12 +189,26 @@ class IFAM2024DEVELSM(Behavior):
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robots': 'robots'})
 
+			# x:210 y:379
+			OperatableStateMachine.add('Upload PoseDB to Rosparam',
+										UploadPoseDBState(posedb_file_location='/devel_ws/src/disassembly_pipeline/disassembly_pipeline/poses/pose_database.json', ros_param_name='pose_db'),
+										transitions={'continue': 'finished', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'success': 'success'})
+
 			# x:230 y:151
 			OperatableStateMachine.add('init_panda_2',
 										InitReconcyclePandaState(robot_name="panda_2", tool_name="VariableStiffnessGripper", use_toolchanger=False),
 										transitions={'continue': 'finished', 'failed': 'failed'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robots': 'robots'})
+
+			# x:228 y:267
+			OperatableStateMachine.add('Activate Panda 1 airblock',
+										ActivateRaspiDigitalOutput(service_name="/airblock2_air_ON"),
+										transitions={'continue': 'finished', 'failed': 'failed'},
+										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'value': 'activate_airblock', 'success': 'success'})
 
 
 		# x:542 y:46, x:14 y:136, x:509 y:187, x:595 y:220, x:0 y:232
@@ -295,7 +314,7 @@ class IFAM2024DEVELSM(Behavior):
 			# x:1231 y:767
 			OperatableStateMachine.add('Drop smoke detector on table',
 										DropObjectState(robot_name="panda_1", drop_pose=None, drop_tf_name=None, move_time_to_above=1, move_time_to_below=1, offset_above_z=0.15, drop_pose_offset=[0,0,0]),
-										transitions={'continue': 'Execute once again?', 'failed': 'Pick up fumonic'},
+										transitions={'continue': 'Execute once again?', 'failed': 'failed_during_cycle'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robots': 'robots', 'drop_pose_tf': 'drop_pose_in_robot_frame'})
 
@@ -314,7 +333,7 @@ class IFAM2024DEVELSM(Behavior):
 
 			# x:933 y:911
 			OperatableStateMachine.add('Find clear drop pose',
-										FindClearDropPoseState(dropped_object_diameter=0.14, drop_limit_bbox=[[0.18,0.45],[0.45,0.18]], detections_parent_frame="vision_table_zero", drop_pose_z_in_robot_frame=0.07, robot_parent_frame='panda_1_link0'),
+										FindClearDropPoseState(dropped_object_diameter=0.155, drop_limit_bbox=[[0.18,0.45],[0.45,0.18]], detections_parent_frame="vision_table_zero", drop_pose_z_in_robot_frame=0.07, robot_parent_frame='panda_1_link0'),
 										transitions={'continue': 'JPath to vision table', 'failed': 'failed_during_cycle'},
 										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'detections': 'detection', 'drop_pose_in_robot_frame': 'drop_pose_in_robot_frame'})
@@ -331,7 +350,7 @@ class IFAM2024DEVELSM(Behavior):
 										_sm_init_workcell_3,
 										transitions={'finished': 'Move robots to initial configuration', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
-										remapping={'robots': 'robots'})
+										remapping={'robots': 'robots', 'activate_airblock': 'activate_airblock'})
 
 			# x:1062 y:832
 			OperatableStateMachine.add('JPath to vision table',
@@ -383,7 +402,7 @@ class IFAM2024DEVELSM(Behavior):
 
 			# x:740 y:521
 			OperatableStateMachine.add('Use CNC?',
-										OperatorDecisionState(outcomes=["yes","no"], hint="Use CNC?", suggestion="yes"),
+										OperatorDecisionState(outcomes=["yes","no"], hint="Use CNC?", suggestion="no"),
 										transitions={'yes': 'Cut smoke detector', 'no': 'Determine pick up pose'},
 										autonomy={'yes': Autonomy.Off, 'no': Autonomy.Off})
 

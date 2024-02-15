@@ -28,9 +28,12 @@ class FindCNCBatteryRotation(EventState):
 		vision_utils = userdata.vision_utils[self.vision_utils_name]
 
 		SUCCESS = 0
+		try:
+			battery_detections = vision_utils.get_detections_with_timeout(desired_class = 'battery_covered', timeout = 4.0)
+		except Exception as e:
+			Logger.logerr(f'{e}')
 
-		battery_detections = vision_utils.get_detections_with_timeout(desired_class = 'battery_covered', timeout = 4.0)
-		if battery_detections is not None:
+		if (battery_detections is not None) and (len(battery_detections) > 0):
 			battery_detection = battery_detections[0]
 			SUCCESS = 1
 			self.out = 'continue'

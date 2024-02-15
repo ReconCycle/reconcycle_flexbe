@@ -33,10 +33,15 @@ class PickupObjectState(EventState):
         self.a_max_factor = a_max_factor
         self.offset = offset
 
-        self.out = 'failed'
-
         generic_tf_listener = TFManager()
         self.tf2x = generic_tf_listener.tf2x
+
+        self.pickup_skill = PickupObject(robot= None, 
+                                        gripper_sleep = self.gripper_sleep,
+                                        move_above_z = self.move_above_z,
+                                        offset = self.offset,
+                                    )
+        self.out = 'failed'
 
     def on_enter(self, userdata):
 
@@ -63,11 +68,7 @@ class PickupObjectState(EventState):
             # We want to parametrically pick up an object based on its tf and know pick up pose (dT) in relation to it
             disassembly_object = userdata.disassembly_object
 
-            pickup_skill = PickupObject(robot= r, 
-                                        gripper_sleep = self.gripper_sleep,
-                                        move_above_z = self.move_above_z,
-                                        offset = self.offset,
-                                    )
+            pickup_skill = self.pickup_skill
             
             try:
                 # Convert object pose in base_frame_of_object_pose to pose in robot_base_frame
@@ -89,7 +90,8 @@ class PickupObjectState(EventState):
 
                 object_class = disassembly_object.tf_label.name
 
-                pickup_skill.on_enter(object_class = object_class,
+                pickup_skill.on_enter(robot = r,
+                                      object_class = object_class,
                                       object_tf_in_robot_cs = object_x_in_robot_frame,
                                       ignore_orientation= True,
                                       move_time_to_above = self.move_time_to_above_pickup_pose,

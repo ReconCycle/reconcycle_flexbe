@@ -10,14 +10,13 @@ class InitCNCState(EventState):
                                             input_keys = ['cnc_client'],
                                             output_keys = ['cnc_client'])
         
+        self.cnc_client = CNCActionClient(wait_for_server=False, init_ros_node=False)
         self.out = 'continue'
         pass
 
     def on_enter(self, userdata):
         
-        cnc_client = CNCActionClient(wait_for_server=False, init_ros_node=False)
-
-        userdata.cnc_client = cnc_client
+        userdata.cnc_client = self.cnc_client
         self.out = 'continue'
         return self.out
 

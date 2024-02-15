@@ -8,18 +8,21 @@ class CncCutState(EventState):
         super(CncCutState, self).__init__(outcomes = ['continue', 'failed'],
                                             input_keys = ['disassembly_object','cnc_client'])
         self.detailed_class = detailed_class
-        self.battery_rotation = battery_rotation        
+        self.battery_rotation = battery_rotation
+
+        Logger.loginfo("CNCCut waiting for server...")
+        self.cnc_cut_skill = CNCCutSmokeDetector(init_ros_node = False, wait_for_server = True)
+
         self.out = 'failed'
 
     def on_enter(self, userdata):
-        Logger.loginfo("CNCCut waiting for server...")
-        cnc_cut_skill = CNCCutSmokeDetector(init_ros_node = False, wait_for_server = True)
+        cnc_cut_skill = self.cnc_cut_skill
         Logger.loginfo("CNCCut got CNC server response.")
 
-        if self.detailed_class is None:
-            self.detailed_class = userdata.disassembly_object.detailed_class
-        if self.battery_rotation is None:
-            self.battery_rotation = userdata.disassembly_object.battery_rotation
+        # if self.detailed_class is None:
+        self.detailed_class = userdata.disassembly_object.detailed_class
+        # if self.battery_rotation is None:
+        self.battery_rotation = userdata.disassembly_object.battery_rotation
 
         cnc_cut_skill.cnc_cl.move_chuck('close')
         
